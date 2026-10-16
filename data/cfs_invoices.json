@@ -1,0 +1,57 @@
+[
+  {
+    "id": "CFS-A-101",
+    "terminal": "Sample CFS Terminal A",
+    "tariff_id": "SAMPLE_A",
+    "text": "TERMINAL: Sample CFS Terminal A\nINVOICE NO: CFS-A-101\nCONTAINER: SMPU0000101\nSIZE: 20\nGATE IN: 2026-10-01\nGATE OUT: 2026-10-06\nLINE 1 | HANDLING | Container handling | 1 | 1500.00 | 1500.00\nLINE 2 | DOC | Documentation | 1 | 300.00 | 300.00\nLINE 3 | STORAGE | Storage days | 2 | 300.00 | 600.00\nSUBTOTAL: 2400.00\nGST: 432.00\nTOTAL: 2832.00",
+    "gold": {
+      "flags": []
+    }
+  },
+  {
+    "id": "CFS-A-102",
+    "terminal": "Sample CFS Terminal A",
+    "tariff_id": "SAMPLE_A",
+    "text": "TERMINAL: Sample CFS Terminal A\nINVOICE NO: CFS-A-102\nCONTAINER: SMPU0000101\nSIZE: 20\nGATE IN: 2026-10-01\nGATE OUT: 2026-10-06\nLINE 1 | HANDLING | Container handling | 1 | 1500.00 | 1500.00\nLINE 2 | DOC | Documentation | 1 | 300.00 | 300.00\nLINE 3 | STORAGE | Storage days | 4 | 300.00 | 1200.00\nSUBTOTAL: 3000.00\nGST: 540.00\nTOTAL: 3540.00",
+    "gold": {
+      "flags": [
+        "STORAGE_DAYS"
+      ]
+    }
+  },
+  {
+    "id": "CFS-A-103",
+    "terminal": "Sample CFS Terminal A",
+    "tariff_id": "SAMPLE_A",
+    "text": "TERMINAL: Sample CFS Terminal A\nINVOICE NO: CFS-A-103\nCONTAINER: SMPU0000101\nSIZE: 20\nGATE IN: 2026-10-01\nGATE OUT: 2026-10-06\nLINE 1 | HANDLING | Container handling | 1 | 1800.00 | 1800.00\nLINE 2 | DOC | Documentation | 1 | 300.00 | 300.00\nLINE 3 | DOC | Documentation | 1 | 300.00 | 300.00\nLINE 4 | STORAGE | Storage days | 2 | 300.00 | 600.00\nSUBTOTAL: 3000.00\nGST: 540.00\nTOTAL: 3540.00",
+    "gold": {
+      "flags": [
+        "RATE_MISMATCH",
+        "DUPLICATE"
+      ]
+    }
+  },
+  {
+    "id": "CFS-A-104",
+    "terminal": "Sample CFS Terminal A",
+    "tariff_id": "SAMPLE_A",
+    "text": "TERMINAL: Sample CFS Terminal A\nINVOICE NO: CFS-A-104\nCONTAINER: SMPU0000101\nSIZE: 20\nGATE IN: 2026-10-01\nGATE OUT: 2026-10-06\nLINE 1 | HANDLING | Container handling | 1 | 1500.00 | 1500.00\nLINE 2 | DOC | Documentation | 1 | 300.00 | 300.00\nLINE 3 | STORAGE | Storage days | 2 | 300.00 | 600.00\nSUBTOTAL: 2400.00\nGST: 400.00\nTOTAL: 2832.00",
+    "gold": {
+      "flags": [
+        "GST_MISMATCH"
+      ]
+    }
+  },
+  {
+    "id": "CFS-B-201",
+    "terminal": "Sample CFS Terminal B",
+    "tariff_id": "SAMPLE_B",
+    "text": "TERMINAL: Sample CFS Terminal B\nINVOICE NO: CFS-B-201\nCONTAINER: SMPU0000101\nSIZE: 20\nGATE IN: 2026-10-02\nGATE OUT: 2026-10-05\nLINE 1 | HANDLING | Container handling | 2 | 1200.00 | 2600.00\nLINE 2 | STORAGE | Storage days | 1 | 350.00 | 350.00\nLINE 3 | SEAL | Seal charge | 1 | 150.00 | 150.00\nSUBTOTAL: 3100.00\nGST: 558.00\nTOTAL: 3658.00",
+    "gold": {
+      "flags": [
+        "ARITHMETIC",
+        "NOT_IN_TARIFF"
+      ]
+    }
+  }
+]

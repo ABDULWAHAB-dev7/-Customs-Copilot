@@ -1,0 +1,110 @@
+[
+  {
+    "id": "SHP-1001",
+    "docs": {
+      "invoice": [
+        "Invoice No: INV-1001",
+        "Supplier: Sample Exporter Ltd",
+        "Buyer: Sample Importer Pvt Ltd",
+        "Invoice Date: 2026-09-20",
+        "Currency: USD",
+        "Invoice Value: 12500.00",
+        "Incoterm: FOB",
+        "HS Code: 8524.11",
+        "Goods Description: Test sockets for semiconductor devices"
+      ],
+      "packing_list": [
+        "Packing List No: PL-1001",
+        "Container No: SMPU0000101",
+        "Total Packages: 40",
+        "Gross Weight: 812.50 kg",
+        "Net Weight: 790.00 kg"
+      ],
+      "bill_of_lading": [
+        "B/L No: BL-1001",
+        "Vessel: MV Sample Star",
+        "Voyage: 2609W",
+        "Port of Loading: Sample Port Origin",
+        "Port of Discharge: Sample Port India",
+        "Packages: 40",
+        "Gross Weight: 812.50 kg"
+      ],
+      "certificate_of_origin": [
+        "Certificate No: CO-1001",
+        "Country of Origin: Sample Country",
+        "HS Code: 8524.11",
+        "Exemption Notification: 12/2026-Sample",
+        "Issued By: Sample Chamber"
+      ]
+    }
+  },
+  {
+    "id": "SHP-1002",
+    "docs": {
+      "invoice": [
+        "Invoice No: INV-1001",
+        "Supplier: Sample Exporter Ltd",
+        "Buyer: Sample Importer Pvt Ltd",
+        "Invoice Date: 2026-09-20",
+        "Currency: USD",
+        "Invoice Value: 12500.00",
+        "Incoterm: FOB",
+        "HS Code: 8524.11",
+        "Goods Description: Test sockets for semiconductor devices"
+      ],
+      "packing_list": [
+        "Packing List No: PL-1001",
+        "Container No: SMPU0000101",
+        "Total Packages: 40",
+        "Gross Weight: 812.50 kg",
+        "Net Weight: 790.00 kg"
+      ],
+      "certificate_of_origin": [
+        "Certificate No: CO-1001",
+        "Country of Origin: Sample Country",
+        "HS Code: 8524.19",
+        "Exemption Notification: 12/2026-Sample",
+        "Issued By: Sample Chamber"
+      ]
+    }
+  },
+  {
+    "id": "SHP-1003",
+    "docs": {
+      "invoice": [
+        "Invoice No: INV-1001",
+        "Supplier: Sample Exporter Ltd",
+        "Buyer: Sample Importer Pvt Ltd",
+        "Invoice Date: 2026-09-20",
+        "Currency: USD",
+        "Invoice Value: 12500.00",
+        "Incoterm: FOB",
+        "HS Code: 8524.11",
+        "Goods Description: Test sockets for semiconductor devices"
+      ],
+      "packing_list": [
+        "Packing List No: PL-1001",
+        "Container No: SMPU0000101",
+        "Total Packages: 40",
+        "Gross Weight: 812.50 kg",
+        "Net Weight: 790.00 kg"
+      ],
+      "bill_of_lading": [
+        "B/L No: BL-1001",
+        "Vessel: MV Sample Star",
+        "Voyage: 2609W",
+        "Port of Loading: Sample Port Origin",
+        "Port of Discharge: Sample Port India",
+        "Packages: 38",
+        "Gross Weight: 812.50 kg"
+      ],
+      "certificate_of_origin": [
+        "Certificate No: CO-1001",
+        "Country of Origin: Sample Country",
+        "HS Code: 8524.11",
+        "Exemption Notification: 12/2026-Sample",
+        "Issued By: Sample Chamber"
+      ]
+    }
+  }
+]

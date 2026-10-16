@@ -1,208 +1,63 @@
-# Customs Copilot - AI-Powered Customs Assistant
+# Customs Copilot
 
-A zero-cost, stateless application that helps with customs clearance using two main tools:
-- **Tool A**: Query-Reply Copilot - Draft cited responses to customs officer queries
-- **Tool B**: Charge Checker - Validate port/CFS charges against tariff rates
+Two tools on one stateless service: a cited query-reply drafter for customs officer queries, and a charge checker for port and CFS invoices. Synthetic data only. Drafts and checks; a licensed professional remains responsible for anything filed.
 
-## Quick Start
+Design: `Customs Copilot - System Design and Architecture` (PDF, kept outside the repo).
 
-### Prerequisites
-- Python 3.11+
-- pip
+## Layout
 
-### Setup
-
-1. **Clone/Extract the project**
-```bash
-cd custom\ copilot
+```
+api/index.py        ASGI routes (Starlette), input limits, error mapping
+core/copilot.py     intents, chunking, verify gate, drafting, cross-checks
+core/charges.py     invoice reader, tariff selection, Decimal checks, explanation
+core/retrieval.py   dependency-free BM25
+core/llm.py         optional Gemini client (urllib, 8 s timeout, never raises)
+data/*.json         read-only bundle: shipments, questions, tariffs, cfs_invoices
+public/index.html   static page (served by Vercel's CDN; by dev.py locally)
+scripts/generate_data.py   regenerates data/*.json deterministically
+tests/              run_checks.py, test_llm_guard.py
+dev.py              local server: API and page on port 8000
 ```
 
-2. **Create virtual environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+## Run locally
 
-3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
+python scripts/generate_data.py      # optional; data is committed
+python dev.py                        # http://127.0.0.1:8000
 ```
 
-4. **Set environment variables (optional)**
+Tests (standard library, plus httpx for the API checks):
+
 ```bash
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY if you have one
+pip install -r requirements-dev.txt
+python tests/run_checks.py
+python tests/test_llm_guard.py
 ```
 
-5. **Run locally**
-```bash
-python api/index.py
-```
+## AI drafting (optional)
 
-The application will be available at `http://localhost:8000`
+Set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`). Without a key the service runs in offline mode. Model output is only a proposal: every sentence must cite a real line, quote it exactly, and keep its numbers, or it is rejected and the offline draft is used.
 
-## Project Structure
+## API
 
-```
-custom copilot/
-├── api/
-│   ├── __init__.py
-│   └── index.py          # Main ASGI application (Starlette)
-├── core/
-│   ├── __init__.py
-│   ├── copilot.py        # Tool A: Query-reply logic
-│   ├── charges.py        # Tool B: Charge validation
-│   ├── retrieval.py      # BM25 search & data loading
-│   └── llm.py            # LLM integration (Gemini/Claude)
-├── data/
-│   ├── tariff_rates.json # Tariff rate reference
-│   ├── rules.json        # Business rules
-│   └── sample_documents.json
-├── public/
-│   └── index.html        # Frontend UI (static HTML/CSS/JS)
-├── requirements.txt
-├── vercel.json           # Vercel deployment config
-└── README.md
-```
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/health` | `llm_available` shows whether a key is configured |
+| GET | `/api/shipments` | ids and document types |
+| GET | `/api/questions?shipment_id=` | sample officer questions (404 if unknown shipment) |
+| POST | `/api/draft` | `{shipment_id, question, use_llm}`; 400 missing or over 2000 chars; 404 unknown shipment |
+| GET | `/api/cfs/samples` | sample invoices with the answer key removed |
+| POST | `/api/cfs/check` | `{text, tariff_id?}`; 400 missing or over 20000 chars; 422 unreadable or no tariff card |
 
-## Features
+Errors are `{"error": message}`.
 
-### Tool A: Query-Reply Copilot
-- Answer customs officer queries with cited references
-- Works in offline mode (default) or with AI enhancement
-- Verifies required documents are present
-- Ensures all statements are backed by documents
+## Deploy (Vercel)
 
-### Tool B: Charge Checker
-- Validates charges against tariff rates
-- Flags wrong rates, duplicate charges, GST errors
-- Deterministic decimal-based calculations
-- Shows tariff references for each flagged issue
+Import the repository in Vercel. `vercel.json` rewrites `/api/*` to the single function in `api/index.py` (30 s cap); `public/` is served from the CDN. Set `GEMINI_API_KEY` in the project's environment variables only if you want AI drafting.
 
-## API Endpoints
+## Known gaps
 
-### Query-Reply
-```
-POST /api/query-reply
-{
-  "query": "What documents are needed?",
-  "shipment_id": "SHIP-001",
-  "documents": [{"name": "invoice.pdf", "content": "..."}]
-}
-```
-
-### Charge Checker
-```
-POST /api/check-charges
-{
-  "id": "INV-001",
-  "port": "INMAA4",
-  "charges": [
-    {"description": "Port handling", "tariff_ref": "PH001", "amount": 1000, "gst": 180}
-  ]
-}
-```
-
-### System Status
-```
-GET /api/status
-GET /api/health
-```
-
-## Deployment
-
-### Vercel (Zero-Cost)
-1. Push to GitHub
-2. Connect to Vercel
-3. Deploy - automatic!
-
-The app runs on Vercel's free tier with:
-- Static frontend hosting
-- Python serverless functions
-- No database required
-
-### Local Development
-```bash
-pip install -r requirements.txt
-python api/index.py
-```
-
-## AI Integration (Optional)
-
-The system works perfectly in **offline mode** without any API keys. To add AI-powered responses:
-
-1. **Get a Gemini API key** from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. **Add to environment**:
-   ```bash
-   export GEMINI_API_KEY=your_key_here
-   ```
-3. Restart the app - AI features now enabled
-
-## Configuration
-
-Key settings in `data/rules.json`:
-- Required documents for clearance
-- Free days policies
-- GST rate (default: 18%)
-- Currency (INR)
-
-Tariff rates in `data/tariff_rates.json`:
-- Port-specific rates
-- Rate per charge type
-
-## Testing
-
-### Test Query-Reply
-```bash
-curl -X POST http://localhost:8000/api/query-reply \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "What documents do I need?",
-    "shipment_id": "SHIP-001"
-  }'
-```
-
-### Test Charge Checker
-```bash
-curl -X POST http://localhost:8000/api/check-charges \
-  -H "Content-Type: application/json" \
-  -d '{
-    "id": "INV-001",
-    "port": "INMAA4",
-    "charges": [{"description": "Port handling", "tariff_ref": "PH001", "amount": 1000, "gst": 180}]
-  }'
-```
-
-## Security & Privacy
-
-- **Stateless**: No data stored on server
-- **Privacy-First**: All documents processed in memory only
-- **No Database**: Uses only read-only JSON data
-- **Offline-Ready**: Works without internet connection
-- **Citations**: Every statement is sourced from documents
-
-## Roadmap
-
-### V2 Features
-- Real PDF document intake
-- User authentication & persistence
-- Audit logging
-- Real ICEGATE integration
-- Multi-language support
-- Mobile app
-
-## Support
-
-For issues or questions:
-1. Check the API endpoints documentation above
-2. Review the system design PDF
-3. Test in offline mode first
-4. Enable debug logging for troubleshooting
-
-## License
-
-MIT License - See LICENSE file for details
-
----
-
-**Built with**: Python • Starlette • Vercel • Zero Dependencies ❤️
+- The invoice reader is a regular expression for the sample layout. Gemini-assisted reading and explanation polish from the design are not built yet.
+- Real tariff cards, real documents and real PDF intake are out of scope for v1.
+- The first live Vercel deployment has not been tested from here.

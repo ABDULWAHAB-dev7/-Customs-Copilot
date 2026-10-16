@@ -1,0 +1,93 @@
+"""Scenario checks: planted charge mistakes, cited drafts, and the API contract. Run: python tests/run_checks.py"""
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from core.charges import check_invoice  # noqa: E402
+from core.copilot import draft  # noqa: E402
+
+DATA = ROOT / "data"
+failures = []
+
+
+def expect(cond, msg):
+    if not cond:
+        failures.append(msg)
+
+
+def load(name):
+    return json.loads((DATA / name).read_text(encoding="utf-8"))
+
+
+def check_charges():
+    tariffs = load("tariffs.json")
+    for inv in load("cfs_invoices.json"):
+        result = check_invoice(inv["text"], tariffs, inv["tariff_id"])
+        got = sorted(f["code"] for f in result["flags"])
+        want = sorted(inv["gold"]["flags"])
+        expect(got == want, f"{inv['id']}: flags {got} expected {want}")
+
+
+def check_drafts():
+    shipments = {s["id"]: s for s in load("shipments.json")}
+    questions = load("questions.json")
+    for sid, shipment in shipments.items():
+        for q in questions:
+            result = draft(shipment, q)
+            ids = {f"{d}:{n}" for d, lines in shipment["docs"].items() for n in range(1, len(lines) + 1)}
+            for s in result["sentences"]:
+                expect(s["cite"] in ids, f"{sid}: cite {s['cite']} not in shipment")
+                expect(s["quote"] in next(
+                    l for d, lines in shipment["docs"].items() for n, l in enumerate(lines, 1)
+                    if f"{d}:{n}" == s["cite"]), f"{sid}: quote not in cited line")
+            expect(result["status"].startswith("DRAFT - not sent"), "status text changed")
+
+    gap = draft(shipments["SHP-1002"], "Provide the CTH declared for this shipment.")
+    expect("Certificate of Origin" not in gap["missing"], "SHP-1002 has a certificate; should not be missing")
+    gap = draft(shipments["SHP-1002"], "What is the country of origin of the goods?")
+    expect(gap["missing"] == [], "SHP-1002 origin should be present")
+    gap = draft(shipments["SHP-1002"], "Which vessel and voyage carry this consignment?")
+    expect("Bill of Lading" in gap["missing"], "SHP-1002 has no bill of lading; should be reported missing")
+    expect(any("HS code differs" in n for n in draft(shipments["SHP-1002"], "CTH?")["notes"]),
+           "HS mismatch note missing for SHP-1002")
+
+
+def check_api():
+    try:
+        from starlette.testclient import TestClient
+    except ImportError:
+        print("skip: API checks need httpx (pip install -r requirements-dev.txt)")
+        return
+    from api.index import app
+    c = TestClient(app)
+    expect(c.get("/api/health").json()["status"] == "ok", "health")
+    shipments = c.get("/api/shipments").json()["shipments"]
+    expect(len(shipments) == 3, "shipment list length")
+    expect(c.get("/api/questions?shipment_id=SHP-1001").status_code == 200, "questions ok")
+    expect(c.get("/api/questions?shipment_id=NOPE").status_code == 404, "unknown shipment 404 on questions")
+    expect(c.post("/api/draft", json={"shipment_id": "NOPE", "question": "x"}).status_code == 404, "draft 404")
+    expect(c.post("/api/draft", json={"shipment_id": "SHP-1001", "question": ""}).status_code == 400, "draft 400")
+    expect(c.post("/api/draft", json={"shipment_id": "SHP-1001", "question": "x" * 2001}).status_code == 400, "question limit")
+    body = c.post("/api/draft", json={"shipment_id": "SHP-1001", "question": "What is the HS code?"}).json()
+    expect(body["mode"] == "offline" and body["sentences"], "draft offline with sentences")
+    samples = c.get("/api/cfs/samples").json()["samples"]
+    expect(all("gold" not in s and "flags" not in s for s in samples), "answer key leaked in samples")
+    expect(c.post("/api/cfs/check", json={"text": "hello"}).status_code == 422, "unreadable invoice 422")
+    expect(c.post("/api/cfs/check", json={"text": "x" * 20001}).status_code == 400, "invoice limit 400")
+    ok = c.post("/api/cfs/check", json={"text": samples[0]["text"], "tariff_id": "SAMPLE_A"})
+    expect(ok.status_code == 200 and ok.json()["flags"] == [], "clean invoice has no flags")
+
+
+if __name__ == "__main__":
+    check_charges()
+    check_drafts()
+    check_api()
+    if failures:
+        print("FAILED")
+        for f in failures:
+            print(" -", f)
+        sys.exit(1)
+    print("All scenario checks passed.")

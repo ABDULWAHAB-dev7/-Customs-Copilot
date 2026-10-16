@@ -1,0 +1,6 @@
+tests/
+scripts/
+skills/
+.claude/
+__pycache__/
+*.md

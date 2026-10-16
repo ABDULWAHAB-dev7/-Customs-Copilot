@@ -1,244 +1,209 @@
-"""Tool B: Charge Checker - Verify port/CFS charges against tariff rates."""
-from typing import List, Dict, Tuple
+"""Tool B: read a CFS invoice and check it against a tariff card. All money in Decimal."""
+import re
+from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
-from dataclasses import dataclass
-from enum import Enum
-from .retrieval import DataLoader
+
+CENT = Decimal("0.01")
+LINE = re.compile(r"^LINE (\d+) \| (\w+) \| ([^|]+?) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+)$")
+HEADER_KEYS = {"TERMINAL", "INVOICE NO", "CONTAINER", "SIZE", "GATE IN", "GATE OUT"}
+FOOTER_KEYS = {"SUBTOTAL", "GST", "TOTAL"}
 
 
-class ChargeFlag(Enum):
-    """Types of charge issues that can be flagged."""
-    WRONG_RATE = "wrong_rate"
-    WRONG_FREE_DAYS = "wrong_free_days"
-    DUPLICATE_CHARGE = "duplicate_charge"
-    NOT_IN_TARIFF = "not_in_tariff"
-    WRONG_GST = "wrong_gst"
-    WRONG_CURRENCY = "wrong_currency"
+class ReadError(Exception):
+    pass
 
 
-@dataclass
-class ChargeItem:
-    """A single charge from an invoice."""
-    description: str
-    quantity: float
-    unit_rate: Decimal
-    total: Decimal
-    tariff_ref: str = ""
-    gst_rate: Decimal = Decimal("18")
+class TariffError(Exception):
+    pass
 
 
-@dataclass
-class ChargeIssue:
-    """A flagged issue with a charge."""
-    flag_type: ChargeFlag
-    charge_description: str
-    billed_amount: Decimal
-    expected_amount: Decimal
-    tariff_ref: str
-    message: str
+def money(value):
+    return Decimal(value).quantize(CENT, rounding=ROUND_HALF_UP)
 
 
-class ChargeChecker:
-    """Validates charges against tariff rates."""
+def fmt(value):
+    return f"{money(value):.2f}"
 
-    def __init__(self, gst_rate: Decimal = Decimal("18")):
-        """Initialize charge checker.
 
-        Args:
-            gst_rate: Default GST rate (as percentage)
-        """
-        self.tariff_rates = DataLoader.load_tariff_rates()
-        self.rules = DataLoader.load_rules()
-        self.gst_rate = Decimal(gst_rate)
-        self.checked_charges = {}
+def read_invoice(text):
+    header, footer, lines = {}, {}, []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        m = LINE.match(line)
+        if m:
+            n, code, desc, qty, rate, amount = m.groups()
+            lines.append({
+                "line": int(n), "code": code, "description": desc.strip(),
+                "qty": Decimal(qty), "rate": money(rate), "amount": money(amount),
+            })
+            continue
+        key, sep, value = line.partition(":")
+        key = key.strip().upper()
+        if not sep:
+            continue
+        if key in HEADER_KEYS:
+            header[key] = value.strip()
+        elif key in FOOTER_KEYS:
+            footer[key] = value.strip()
 
-    def check_invoice(self, invoice: Dict) -> Dict:
-        """Check entire invoice against tariff rates.
+    missing = [k for k in HEADER_KEYS | FOOTER_KEYS if k not in header and k not in footer]
+    if missing or not lines:
+        raise ReadError("Invoice layout not recognised: missing " + ", ".join(sorted(missing or ["LINE rows"])))
+    try:
+        gate_in = date.fromisoformat(header["GATE IN"])
+        gate_out = date.fromisoformat(header["GATE OUT"])
+        subtotal, gst, total = money(footer["SUBTOTAL"]), money(footer["GST"]), money(footer["TOTAL"])
+    except (ValueError, ArithmeticError) as e:
+        raise ReadError(f"Invoice values could not be read: {e}")
 
-        Args:
-            invoice: Invoice data with line items and port/CFS info
+    return {
+        "terminal": header["TERMINAL"],
+        "invoice_no": header["INVOICE NO"],
+        "container": header["CONTAINER"],
+        "size": header["SIZE"],
+        "gate_in": gate_in,
+        "gate_out": gate_out,
+        "lines": lines,
+        "subtotal": subtotal,
+        "gst": gst,
+        "total": total,
+    }
 
-        Returns:
-            Analysis results with flagged issues
-        """
-        charges = invoice.get("charges", [])
-        port = invoice.get("port", "")
-        cfs = invoice.get("cfs", "")
 
-        issues = []
-        total_variance = Decimal("0")
+def select_tariff(tariffs, tariff_id, terminal):
+    if tariff_id:
+        if tariff_id not in tariffs:
+            raise TariffError(f"No tariff card named '{tariff_id}'.")
+        return tariff_id, tariffs[tariff_id]
+    for tid, card in tariffs.items():
+        if card["terminal"] == terminal:
+            return tid, card
+    raise TariffError(f"No tariff card exists for terminal '{terminal}'.")
 
-        for charge in charges:
-            charge_issues, variance = self._check_charge(
-                charge, port, cfs
-            )
-            issues.extend(charge_issues)
-            total_variance += variance
 
-        # Check for duplicate charges
-        duplicate_issues = self._check_duplicates(charges)
-        issues.extend(duplicate_issues)
+def slab_amount(storage, size, days):
+    bands = storage["slabs"].get(size)
+    if bands is None:
+        raise TariffError(f"No storage slabs for container size {size}.")
+    total = Decimal("0")
+    for day in range(1, days + 1):
+        for lo, hi, rate in bands:
+            if day >= lo and (hi is None or day <= hi):
+                total += Decimal(rate)
+                break
+    return money(total)
 
-        return {
-            "invoice_id": invoice.get("id", ""),
-            "status": "FLAGGED" if issues else "OK",
-            "total_issues": len(issues),
-            "issues": [
-                {
-                    "type": issue.flag_type.value,
-                    "charge": issue.charge_description,
-                    "billed": float(issue.billed_amount),
-                    "expected": float(issue.expected_amount),
-                    "tariff_ref": issue.tariff_ref,
-                    "message": issue.message
-                }
-                for issue in issues
+
+def flag(code, line, message, tariff_ref, billed, expected, overcharge):
+    return {
+        "code": code, "line": line, "message": message, "tariff_ref": tariff_ref,
+        "billed": billed, "expected": expected, "overcharge": overcharge,
+    }
+
+
+def check(inv, card):
+    flags = []
+    size = inv["size"]
+    charges = card["charges"]
+    storage = card["storage"]
+    seen = set()
+
+    for ln in inv["lines"]:
+        code, n = ln["code"], ln["line"]
+        expected_amount = money(ln["qty"] * ln["rate"])
+        if abs(ln["amount"] - expected_amount) > CENT:
+            over = max(Decimal("0"), ln["amount"] - expected_amount)
+            flags.append(flag("ARITHMETIC", n, f"Quantity times rate is {fmt(expected_amount)}, not {fmt(ln['amount'])}.",
+                              "Line arithmetic", fmt(ln["amount"]), fmt(expected_amount), fmt(over)))
+
+        if code == "STORAGE":
+            continue
+
+        key = (code, ln["description"], ln["amount"])
+        if key in seen:
+            flags.append(flag("DUPLICATE", n, f"{code} {ln['description']} for {fmt(ln['amount'])} appears more than once.",
+                              "Duplicate line", fmt(ln["amount"]), "0.00", fmt(ln["amount"])))
+        seen.add(key)
+
+        if code not in charges:
+            flags.append(flag("NOT_IN_TARIFF", n, f"{code} is not on the tariff card.",
+                              "Not in tariff", fmt(ln["amount"]), "0.00", fmt(ln["amount"])))
+            continue
+
+        rates = charges[code]["rate"]
+        if size in rates:
+            exp_rate = money(rates[size])
+            if ln["rate"] != exp_rate:
+                over = max(Decimal("0"), (ln["rate"] - exp_rate) * ln["qty"])
+                flags.append(flag("RATE_MISMATCH", n,
+                                  f"Billed rate {fmt(ln['rate'])} for a {size} ft container; card says {fmt(exp_rate)}.",
+                                  f"{code} rate {size} ft", fmt(ln["rate"]), fmt(exp_rate), fmt(over)))
+
+    free = storage["free_days"]
+    dwell = (inv["gate_out"] - inv["gate_in"]).days
+    chargeable = max(0, dwell - free)
+    storage_lines = [ln for ln in inv["lines"] if ln["code"] == "STORAGE"]
+    billed_days = int(storage_lines[0]["qty"]) if storage_lines else 0
+    billed_amount = storage_lines[0]["amount"] if storage_lines else Decimal("0")
+    exp_amount = slab_amount(storage, size, chargeable)
+    if billed_days != chargeable or billed_amount != exp_amount:
+        over = max(Decimal("0"), billed_amount - exp_amount)
+        flags.append(flag("STORAGE_DAYS", storage_lines[0]["line"] if storage_lines else None,
+                          f"Billed {billed_days} storage days; {dwell} days dwell less {free} free days leaves {chargeable}.",
+                          f"Free days: {free}",
+                          f"{billed_days} days / {fmt(billed_amount)}",
+                          f"{chargeable} days / {fmt(exp_amount)}",
+                          fmt(over)))
+
+    sub_calc = money(sum((ln["amount"] for ln in inv["lines"]), Decimal("0")))
+    gst_pct = Decimal(card["gst_percent"])
+    gst_calc = money(sub_calc * gst_pct / Decimal("100"))
+    total_calc = money(sub_calc + gst_calc)
+    if inv["subtotal"] != sub_calc:
+        flags.append(flag("SUBTOTAL_MISMATCH", None, f"Lines add to {fmt(sub_calc)}, footer says {fmt(inv['subtotal'])}.",
+                          "Subtotal", fmt(inv["subtotal"]), fmt(sub_calc), "0.00"))
+    if inv["gst"] != gst_calc:
+        flags.append(flag("GST_MISMATCH", None, f"GST at {card['gst_percent']}% is {fmt(gst_calc)}, footer says {fmt(inv['gst'])}.",
+                          f"GST {card['gst_percent']}%", fmt(inv["gst"]), fmt(gst_calc), "0.00"))
+    if inv["total"] != total_calc:
+        flags.append(flag("TOTAL_MISMATCH", None, f"Total should be {fmt(total_calc)}, footer says {fmt(inv['total'])}.",
+                          "Total", fmt(inv["total"]), fmt(total_calc), "0.00"))
+
+    return flags, dwell
+
+
+def check_invoice(text, tariffs, tariff_id=None):
+    inv = read_invoice(text)
+    tid, card = select_tariff(tariffs, tariff_id, inv["terminal"])
+    flags, dwell = check(inv, card)
+    over = sum((Decimal(f["overcharge"]) for f in flags), Decimal("0"))
+    if flags:
+        explanation = (f"{len(flags)} check(s) disagree with tariff card {tid}. "
+                       f"Overcharge before GST: {fmt(over)}. Each flag names the tariff line it was compared with.")
+    else:
+        explanation = f"No discrepancies against tariff card {tid}. Lines, storage days and footer totals agree."
+    return {
+        "terminal": inv["terminal"],
+        "dwell_days": dwell,
+        "read_with": "regex",
+        "flags": flags,
+        "overcharge_before_gst": fmt(over),
+        "explanation": explanation,
+        "parsed": {
+            "invoice_no": inv["invoice_no"],
+            "container": inv["container"],
+            "size": inv["size"],
+            "gate_in": inv["gate_in"].isoformat(),
+            "gate_out": inv["gate_out"].isoformat(),
+            "lines": [
+                {"line": ln["line"], "code": ln["code"], "description": ln["description"],
+                 "qty": str(ln["qty"]), "rate": fmt(ln["rate"]), "amount": fmt(ln["amount"])}
+                for ln in inv["lines"]
             ],
-            "total_variance": float(total_variance)
-        }
-
-    def _check_charge(self, charge: Dict, port: str, cfs: str) -> Tuple[List[ChargeIssue], Decimal]:
-        """Check a single charge line item.
-
-        Args:
-            charge: Charge line item
-            port: Port/CFS location
-            cfs: CFS facility identifier
-
-        Returns:
-            Tuple of (issues list, variance amount)
-        """
-        issues = []
-        variance = Decimal("0")
-
-        description = charge.get("description", "")
-        billed = Decimal(str(charge.get("amount", 0)))
-        tariff_ref = charge.get("tariff_ref", "")
-
-        # Check if charge is in tariff
-        if not tariff_ref:
-            issues.append(ChargeIssue(
-                flag_type=ChargeFlag.NOT_IN_TARIFF,
-                charge_description=description,
-                billed_amount=billed,
-                expected_amount=Decimal("0"),
-                tariff_ref="UNKNOWN",
-                message=f"Charge '{description}' has no tariff reference"
-            ))
-            return issues, billed
-
-        # Get expected rate from tariff
-        expected = self._get_tariff_rate(tariff_ref, port)
-
-        if expected is None:
-            issues.append(ChargeIssue(
-                flag_type=ChargeFlag.NOT_IN_TARIFF,
-                charge_description=description,
-                billed_amount=billed,
-                expected_amount=Decimal("0"),
-                tariff_ref=tariff_ref,
-                message=f"Tariff reference {tariff_ref} not found in rate card"
-            ))
-            return issues, billed
-
-        # Check rate matches
-        if billed != expected:
-            variance = billed - expected
-            issues.append(ChargeIssue(
-                flag_type=ChargeFlag.WRONG_RATE,
-                charge_description=description,
-                billed_amount=billed,
-                expected_amount=expected,
-                tariff_ref=tariff_ref,
-                message=f"Rate mismatch: billed {billed}, expected {expected}"
-            ))
-
-        # Check GST calculation
-        gst_issues, gst_variance = self._check_gst(charge, expected)
-        issues.extend(gst_issues)
-        variance += gst_variance
-
-        return issues, variance
-
-    def _check_gst(self, charge: Dict, base_amount: Decimal) -> Tuple[List[ChargeIssue], Decimal]:
-        """Check GST calculation on a charge.
-
-        Args:
-            charge: Charge line item
-            base_amount: Base amount before GST
-
-        Returns:
-            Tuple of (issues, variance)
-        """
-        issues = []
-        variance = Decimal("0")
-
-        billed_gst = Decimal(str(charge.get("gst", 0)))
-        expected_gst = (base_amount * self.gst_rate / Decimal("100")).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-
-        if billed_gst != expected_gst:
-            variance = billed_gst - expected_gst
-            issues.append(ChargeIssue(
-                flag_type=ChargeFlag.WRONG_GST,
-                charge_description=charge.get("description", ""),
-                billed_amount=billed_gst,
-                expected_amount=expected_gst,
-                tariff_ref=charge.get("tariff_ref", ""),
-                message=f"GST mismatch: billed {billed_gst}, expected {expected_gst}"
-            ))
-
-        return issues, variance
-
-    def _check_duplicates(self, charges: List[Dict]) -> List[ChargeIssue]:
-        """Check for duplicate charges.
-
-        Args:
-            charges: List of charge items
-
-        Returns:
-            List of duplicate issues found
-        """
-        issues = []
-        seen = {}
-
-        for charge in charges:
-            desc = charge.get("description", "")
-            key = (desc, charge.get("tariff_ref", ""))
-
-            if key in seen:
-                issues.append(ChargeIssue(
-                    flag_type=ChargeFlag.DUPLICATE_CHARGE,
-                    charge_description=desc,
-                    billed_amount=Decimal(str(charge.get("amount", 0))),
-                    expected_amount=Decimal("0"),
-                    tariff_ref=charge.get("tariff_ref", ""),
-                    message=f"Duplicate charge found: {desc}"
-                ))
-            else:
-                seen[key] = True
-
-        return issues
-
-    def _get_tariff_rate(self, tariff_ref: str, port: str = "") -> Decimal:
-        """Get expected rate from tariff lookup.
-
-        Args:
-            tariff_ref: Tariff reference code
-            port: Port/CFS location
-
-        Returns:
-            Expected rate or None if not found
-        """
-        # Try exact match first
-        if tariff_ref in self.tariff_rates:
-            rate = self.tariff_rates[tariff_ref]
-            if isinstance(rate, dict):
-                # Port-specific rate
-                if port in rate:
-                    return Decimal(str(rate[port]))
-                return Decimal(str(rate.get("default", 0)))
-            return Decimal(str(rate))
-
-        return None
+            "subtotal": fmt(inv["subtotal"]),
+            "gst": fmt(inv["gst"]),
+            "total": fmt(inv["total"]),
+        },
+    }

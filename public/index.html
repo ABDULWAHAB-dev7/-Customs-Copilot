@@ -648,7 +648,9 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
     fillList("notes", d.notes || [], function (n) { return n; });
     toggle($("notes-wrap"), (d.notes || []).length > 0);
 
-    fillList("rejected", d.rejected || [], function (r) { return r.text || r; });
+    fillList("rejected", d.rejected || [], function (r) {
+      return (r.text || "") + (r.reason ? " (" + r.reason + ")" : "");
+    });
     toggle($("rejected-wrap"), (d.rejected || []).length > 0);
 
     var ev = d.evidence || [];

@@ -1,0 +1,122 @@
+{
+  "SAMPLE_A": {
+    "terminal": "Sample CFS Terminal A",
+    "gst_percent": "18",
+    "charges": {
+      "HANDLING": {
+        "description": "Container handling",
+        "unit": "box",
+        "rate": {
+          "20": "1500.00",
+          "40": "2400.00"
+        }
+      },
+      "DOC": {
+        "description": "Documentation",
+        "unit": "bill",
+        "rate": {
+          "20": "300.00",
+          "40": "300.00"
+        }
+      },
+      "SEAL": {
+        "description": "Seal charge",
+        "unit": "seal",
+        "rate": {
+          "20": "150.00",
+          "40": "150.00"
+        }
+      }
+    },
+    "storage": {
+      "free_days": 3,
+      "slabs": {
+        "20": [
+          [
+            1,
+            3,
+            "300.00"
+          ],
+          [
+            4,
+            7,
+            "450.00"
+          ],
+          [
+            8,
+            null,
+            "600.00"
+          ]
+        ],
+        "40": [
+          [
+            1,
+            3,
+            "450.00"
+          ],
+          [
+            4,
+            7,
+            "600.00"
+          ],
+          [
+            8,
+            null,
+            "800.00"
+          ]
+        ]
+      }
+    }
+  },
+  "SAMPLE_B": {
+    "terminal": "Sample CFS Terminal B",
+    "gst_percent": "18",
+    "charges": {
+      "HANDLING": {
+        "description": "Container handling",
+        "unit": "box",
+        "rate": {
+          "20": "1200.00",
+          "40": "2000.00"
+        }
+      },
+      "DOC": {
+        "description": "Documentation",
+        "unit": "bill",
+        "rate": {
+          "20": "250.00",
+          "40": "250.00"
+        }
+      }
+    },
+    "storage": {
+      "free_days": 2,
+      "slabs": {
+        "20": [
+          [
+            1,
+            2,
+            "350.00"
+          ],
+          [
+            3,
+            null,
+            "500.00"
+          ]
+        ],
+        "40": [
+          [
+            1,
+            2,
+            "500.00"
+          ],
+          [
+            3,
+            null,
+            "700.00"
+          ]
+        ]
+      }
+    }
+  }
+}

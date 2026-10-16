@@ -1,181 +1,135 @@
-"""Main API server using Starlette ASGI framework."""
-import os
+"""ASGI app for the Vercel Python function. Holds no state; reads bundled JSON only."""
+import json
 import sys
+from functools import lru_cache
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, FileResponse
-from starlette.routing import Route, Mount
-from starlette.staticfiles import StaticFiles
-from starlette.middleware.cors import CORSMiddleware
-import json
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
-from core.copilot import QueryReplyCopilot
-from core.charges import ChargeChecker
-from core.llm import LLMClient
+from core import llm
+from core.charges import ReadError, TariffError, check_invoice
+from core.copilot import draft
 
-
-# Initialize tools
-llm_client = LLMClient(api_key=os.getenv("GEMINI_API_KEY"))
-query_copilot = QueryReplyCopilot(llm_client=llm_client, enable_llm=bool(os.getenv("GEMINI_API_KEY")))
-charge_checker = ChargeChecker()
+MAX_BODY = 64 * 1024
+MAX_QUESTION = 2000
+MAX_INVOICE = 20000
+DATA = ROOT / "data"
 
 
-# API Routes
+@lru_cache(maxsize=None)
+def _load(name):
+    return json.loads((DATA / name).read_text(encoding="utf-8"))
+
+
+def _error(message, status):
+    return JSONResponse({"error": message}, status_code=status)
+
+
+async def _json_body(request):
+    raw = await request.body()
+    if len(raw) > MAX_BODY:
+        return None, _error("Request body is too large.", 413)
+    try:
+        data = json.loads(raw or b"{}")
+    except ValueError:
+        return None, _error("Request body must be valid JSON.", 400)
+    if not isinstance(data, dict):
+        return None, _error("Request body must be a JSON object.", 400)
+    return data, None
+
+
+def _shipment(shipment_id):
+    for s in _load("shipments.json"):
+        if s["id"] == shipment_id:
+            return s
+    return None
+
+
 async def health(request):
-    """Health check endpoint."""
     return JSONResponse({
-        "status": "healthy",
-        "version": "1.0.0",
-        "llm_available": query_copilot.enable_llm
+        "status": "ok",
+        "llm_available": llm.configured(),
+        "model": llm.model_name() if llm.configured() else None,
     })
 
 
-async def query_reply(request):
-    """Process customs officer query and draft reply.
+async def shipments(request):
+    items = [
+        {"id": s["id"], "docs": sorted(s["docs"].keys())}
+        for s in _load("shipments.json")
+    ]
+    return JSONResponse({"shipments": items})
 
-    Request JSON:
-    {
-        "query": "What documents are needed for this shipment?",
-        "shipment_id": "SHIP-001",
-        "documents": [{...}]
-    }
-    """
+
+async def questions(request):
+    shipment_id = request.query_params.get("shipment_id", "").strip()
+    if not shipment_id:
+        return _error("shipment_id is required.", 400)
+    if _shipment(shipment_id) is None:
+        return _error(f"Unknown shipment '{shipment_id}'.", 404)
+    return JSONResponse({"shipment_id": shipment_id, "questions": _load("questions.json")})
+
+
+async def draft_reply(request):
+    data, err = await _json_body(request)
+    if err:
+        return err
+    shipment_id = str(data.get("shipment_id", "")).strip()
+    question = str(data.get("question", "")).strip()
+    if not shipment_id:
+        return _error("shipment_id is required.", 400)
+    if not question:
+        return _error("question is required.", 400)
+    if len(question) > MAX_QUESTION:
+        return _error(f"question is too long (max {MAX_QUESTION} characters).", 400)
+    shipment = _shipment(shipment_id)
+    if shipment is None:
+        return _error(f"Unknown shipment '{shipment_id}'.", 404)
+    use_llm = bool(data.get("use_llm", False)) and llm.configured()
+    result = draft(shipment, question, use_llm=use_llm, llm_call=llm.complete_json if use_llm else None)
+    return JSONResponse({"shipment_id": shipment_id, **result})
+
+
+async def cfs_samples(request):
+    samples = [
+        {"id": s["id"], "terminal": s["terminal"], "tariff_id": s["tariff_id"], "text": s["text"]}
+        for s in _load("cfs_invoices.json")
+    ]
+    return JSONResponse({"samples": samples})
+
+
+async def cfs_check(request):
+    data, err = await _json_body(request)
+    if err:
+        return err
+    text = str(data.get("text", "")).strip()
+    if not text:
+        return _error("text is required.", 400)
+    if len(text) > MAX_INVOICE:
+        return _error(f"text is too long (max {MAX_INVOICE} characters).", 400)
+    tariff_id = data.get("tariff_id")
+    tariff_id = str(tariff_id).strip() if tariff_id else None
     try:
-        data = await request.json()
-
-        query = data.get("query", "")
-        shipment_id = data.get("shipment_id", "")
-        documents = data.get("documents", [])
-
-        if not query:
-            return JSONResponse({"error": "query parameter required"}, status_code=400)
-
-        # Process query
-        result = query_copilot.process_query(query, shipment_id, documents)
-
-        return JSONResponse(result)
-
-    except json.JSONDecodeError:
-        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse(check_invoice(text, _load("tariffs.json"), tariff_id))
+    except ReadError as e:
+        return _error(str(e), 422)
+    except TariffError as e:
+        return _error(str(e), 422)
 
 
-async def check_charges(request):
-    """Check invoice charges against tariff rates.
-
-    Request JSON:
-    {
-        "id": "INV-001",
-        "port": "INMAA4",
-        "cfs": "CFS-001",
-        "charges": [
-            {
-                "description": "Port handling charge",
-                "tariff_ref": "PH001",
-                "amount": 1000.00,
-                "gst": 180.00
-            }
-        ]
-    }
-    """
-    try:
-        invoice = await request.json()
-
-        if not invoice.get("charges"):
-            return JSONResponse({"error": "charges array required"}, status_code=400)
-
-        # Check charges
-        result = charge_checker.check_invoice(invoice)
-
-        return JSONResponse(result)
-
-    except json.JSONDecodeError:
-        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
-async def extract_citations(request):
-    """Extract cited lines from a document.
-
-    Request JSON:
-    {
-        "document_text": "Line 1\nLine 2\n..."
-    }
-    """
-    try:
-        data = await request.json()
-        document_text = data.get("document_text", "")
-
-        if not document_text:
-            return JSONResponse({"error": "document_text required"}, status_code=400)
-
-        chunks = query_copilot.extract_line_citations(document_text)
-
-        result = {
-            "total_lines": len(chunks),
-            "chunks": [
-                {
-                    "line_number": c.line_number,
-                    "content": c.content
-                }
-                for c in chunks
-            ]
-        }
-
-        return JSONResponse(result)
-
-    except json.JSONDecodeError:
-        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
-async def status(request):
-    """Get system status and available models."""
-    return JSONResponse({
-        "status": "operational",
-        "tools": {
-            "query_reply": "Drafts cited responses to customs queries",
-            "check_charges": "Validates charges against tariff rates"
-        },
-        "llm_mode": "enabled" if query_copilot.enable_llm else "offline",
-        "model": query_copilot.llm_client.model if query_copilot.enable_llm else "offline"
-    })
-
-
-# Create Starlette app
 routes = [
     Route("/api/health", health, methods=["GET"]),
-    Route("/api/status", status, methods=["GET"]),
-    Route("/api/query-reply", query_reply, methods=["POST"]),
-    Route("/api/check-charges", check_charges, methods=["POST"]),
-    Route("/api/extract-citations", extract_citations, methods=["POST"]),
+    Route("/api/shipments", shipments, methods=["GET"]),
+    Route("/api/questions", questions, methods=["GET"]),
+    Route("/api/draft", draft_reply, methods=["POST"]),
+    Route("/api/cfs/samples", cfs_samples, methods=["GET"]),
+    Route("/api/cfs/check", cfs_check, methods=["POST"]),
 ]
 
 app = Starlette(routes=routes)
-
-# Add CORS middleware for frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Serve static frontend
-public_dir = Path(__file__).parent.parent / "public"
-if public_dir.exists():
-    app.mount("/", StaticFiles(directory=str(public_dir), html=True))
-
-
-# For local development
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
