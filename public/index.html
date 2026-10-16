@@ -1,736 +1,781 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customs Copilot</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --color-primary: #0F172A;
-            --color-on-primary: #FFFFFF;
-            --color-secondary: #334155;
-            --color-on-secondary: #FFFFFF;
-            --color-accent: #0369A1;
-            --color-on-accent: #FFFFFF;
-            --color-background: #F8FAFC;
-            --color-foreground: #020617;
-            --color-card: #FFFFFF;
-            --color-card-foreground: #020617;
-            --color-muted: #E8ECF1;
-            --color-muted-foreground: #475569;
-            --color-border: #E2E8F0;
-            --color-destructive: #DC2626;
-            --color-on-destructive: #FFFFFF;
-            --color-ring: #0F172A;
-            --space-2: 8px;
-            --space-3: 12px;
-            --space-4: 16px;
-            --space-6: 24px;
-            --space-8: 32px;
-            --space-12: 48px;
-            --type-base: 16px;
-            --type-sm: 14px;
-            --type-lg: 20px;
-            --type-xl: 28px;
-            --type-2xl: 32px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customs Copilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0F172A;
+  --ink-2: #334155;
+  --muted: #64748B;
+  --line: #E2E8F0;
+  --paper: #FFFFFF;
+  --accent: #0369A1;
+  --accent-ink: #075985;
+  --bad: #B91C1C;
+  --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 64px;
+  color-scheme: light;
+}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html {
-            font-size: 16px;
-        }
+body {
+  font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
 
-        body {
-            font-family: 'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: var(--color-background);
-            color: var(--color-foreground);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
+/* ---------- Scroll scene ---------- */
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: var(--color-card);
-            overflow: hidden;
-            border: 1px solid var(--color-border);
-        }
+.scene-track { position: relative; height: 260vh; }
 
-        header {
-            padding: var(--space-12) var(--space-6);
-            border-bottom: 1px solid var(--color-border);
-            background: var(--color-primary);
-            color: var(--color-on-primary);
-        }
+.scene {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: #E6EEF5;
+}
 
-        header h1 {
-            font-size: var(--type-2xl);
-            font-weight: 700;
-            margin-bottom: var(--space-2);
-            letter-spacing: -0.02em;
-        }
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-        header p {
-            font-size: var(--type-sm);
-            color: rgba(255, 255, 255, 0.85);
-            font-weight: 400;
-        }
+.waves { animation: drift 9s linear infinite; }
+@keyframes drift { from { transform: translateX(0); } to { transform: translateX(-80px); } }
 
-        .status-bar {
-            background: var(--color-background);
-            padding: var(--space-4) var(--space-6);
-            border-bottom: 1px solid var(--color-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: var(--type-sm);
-            color: var(--color-muted-foreground);
-        }
+.topbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--s2) var(--s3);
+}
 
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: var(--space-2);
-            background: var(--color-muted);
-        }
+.brand { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
 
-        .status-online {
-            background: #10B981;
-        }
+.pill {
+  font-size: 13px; color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  padding: 6px 12px; border-radius: 999px;
+}
 
-        .status-offline {
-            background: #F59E0B;
-        }
+.caption {
+  position: absolute; left: var(--s3); bottom: var(--s4); z-index: 2;
+  max-width: 460px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: var(--s3);
+}
 
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--color-border);
-            background: var(--color-background);
-        }
+.caption .kicker { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.caption h1 { font-size: 28px; line-height: 1.2; letter-spacing: -0.01em; margin-top: 6px; }
+.caption p { margin-top: 8px; color: var(--ink-2); font-size: 15px; }
 
-        .tab-button {
-            flex: 1;
-            padding: var(--space-4) var(--space-6);
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: var(--type-sm);
-            font-weight: 600;
-            color: var(--color-muted-foreground);
-            border-bottom: 2px solid transparent;
-            transition: all 200ms ease;
-            font-family: inherit;
-        }
+.cue {
+  position: absolute; right: var(--s3); bottom: var(--s4); z-index: 2;
+  color: var(--ink); font-weight: 700; font-size: 15px; text-decoration: none;
+  background: rgba(255, 255, 255, 0.94); border: 1px solid var(--line);
+  border-radius: 999px; padding: 10px 16px;
+}
 
-        .tab-button:hover {
-            color: var(--color-secondary);
-            background: rgba(51, 65, 85, 0.02);
-        }
+.progress {
+  position: absolute; left: 0; bottom: 0; height: 3px; width: 0;
+  background: var(--accent); z-index: 2;
+}
 
-        .tab-button:focus {
-            outline: 2px solid var(--color-ring);
-            outline-offset: -2px;
-        }
+/* ---------- Tools ---------- */
 
-        .tab-button.active {
-            color: var(--color-accent);
-            border-bottom-color: var(--color-accent);
-            background: var(--color-card);
-        }
+.tools { max-width: 920px; margin: 0 auto; padding: var(--s5) var(--s3) var(--s4); }
 
-        .tab-content {
-            display: none;
-            padding: var(--space-8) var(--space-6);
-            animation: fadeIn 300ms ease-out;
-        }
+.tabs { display: flex; gap: var(--s3); border-bottom: 1px solid var(--line); }
 
-        .tab-content.active {
-            display: block;
-        }
+.tab {
+  font: inherit; font-weight: 700; font-size: 16px; color: var(--muted);
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  padding: 12px 0; margin-bottom: -1px; cursor: pointer;
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 
-        h2 {
-            font-size: var(--type-xl);
-            font-weight: 700;
-            margin-bottom: var(--space-2);
-            color: var(--color-foreground);
-        }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible, .cue:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
-        .description {
-            font-size: var(--type-sm);
-            color: var(--color-muted-foreground);
-            margin: var(--space-4) 0 var(--space-8) 0;
-            line-height: 1.6;
-        }
+.panel { padding: var(--s4) 0 0; }
+.panel[hidden] { display: none; }
 
-        .form-group {
-            margin-bottom: var(--space-8);
-        }
+h2 { font-size: 26px; letter-spacing: -0.01em; }
+.lede { color: var(--ink-2); margin: var(--s1) 0 var(--s4); max-width: 620px; }
 
-        .form-group:last-child {
-            margin-bottom: var(--space-6);
-        }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.field { margin-bottom: var(--s3); }
 
-        label {
-            display: block;
-            margin-bottom: var(--space-3);
-            font-weight: 600;
-            font-size: var(--type-sm);
-            color: var(--color-foreground);
-        }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
 
-        input[type="text"],
-        textarea,
-        select {
-            width: 100%;
-            padding: var(--space-3) var(--space-4);
-            border: 1px solid var(--color-border);
-            border-radius: 4px;
-            font-size: var(--type-base);
-            font-family: inherit;
-            background: var(--color-card);
-            color: var(--color-foreground);
-            transition: border-color 200ms ease, box-shadow 200ms ease;
-        }
+input, select, textarea {
+  width: 100%; font: inherit; font-size: 16px; color: var(--ink);
+  background: var(--paper); border: 1px solid #CBD5E1; border-radius: 6px;
+  padding: 12px 14px;
+}
 
-        input[type="text"]:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--color-accent);
-            box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1);
-        }
+textarea { min-height: 120px; line-height: 1.5; resize: vertical; }
 
-        textarea {
-            resize: vertical;
-            min-height: 120px;
-            line-height: 1.5;
-        }
+.check { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink-2); }
+.check input { width: auto; }
 
-        .button-group {
-            display: flex;
-            gap: var(--space-3);
-            margin-top: var(--space-6);
-            flex-wrap: wrap;
-        }
+.btn {
+  font: inherit; font-size: 15px; font-weight: 700;
+  color: var(--paper); background: var(--ink); border: 1px solid var(--ink);
+  border-radius: 6px; padding: 12px 20px; cursor: pointer;
+}
 
-        button {
-            padding: var(--space-3) var(--space-6);
-            border: none;
-            border-radius: 4px;
-            font-size: var(--type-sm);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 200ms ease;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-2);
-        }
+.btn.ghost { color: var(--ink); background: var(--paper); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        button:hover {
-            opacity: 0.9;
-        }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: var(--s2); }
 
-        button:active {
-            opacity: 0.95;
-        }
+.status { min-height: 24px; margin-top: var(--s2); font-size: 15px; color: var(--ink-2); }
+.status.err { color: var(--bad); }
 
-        button:focus {
-            outline: 2px solid var(--color-ring);
-            outline-offset: 2px;
-        }
+.out { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--line); }
+.out[hidden] { display: none; }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+.kicker { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
 
-        .btn-primary {
-            background: var(--color-accent);
-            color: var(--color-on-accent);
-        }
+ol.sentences { padding-left: 20px; }
+ol.sentences li { margin-bottom: 12px; }
 
-        .btn-primary:hover:not(:disabled) {
-            background: #0256B1;
-        }
+.cite {
+  font-family: ui-monospace, Consolas, monospace; font-size: 12px;
+  color: var(--accent-ink); background: #E0F2FE;
+  padding: 2px 6px; border-radius: 4px; margin-left: 6px; white-space: nowrap;
+}
 
-        .btn-secondary {
-            background: var(--color-muted);
-            color: var(--color-muted-foreground);
-        }
+.quote { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
 
-        .btn-secondary:hover:not(:disabled) {
-            background: #D4D8DF;
-        }
+ul.plain { list-style: none; }
+ul.plain li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
 
-        .result-box {
-            background: var(--color-background);
-            border: 1px solid var(--color-border);
-            border-left: 4px solid var(--color-accent);
-            padding: var(--space-6);
-            border-radius: 4px;
-            margin-top: var(--space-8);
-            display: none;
-        }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s2); margin-bottom: var(--s3); }
+.summary span { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.summary strong { font-size: 18px; }
 
-        .result-box.show {
-            display: block;
-            animation: slideUp 300ms ease-out;
-        }
+.explain { color: var(--ink-2); margin-bottom: var(--s3); }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 
-        .result-box.error {
-            border-left-color: var(--color-destructive);
-            background: rgba(220, 38, 38, 0.02);
-        }
+.foot { max-width: 920px; margin: 0 auto; padding: var(--s3); border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 
-        .result-box.success {
-            border-left-color: #10B981;
-            background: rgba(16, 185, 129, 0.02);
-        }
+/* ---------- Responsive ---------- */
 
-        .result-box.warning {
-            border-left-color: #F59E0B;
-            background: rgba(245, 158, 11, 0.02);
-        }
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; }
+  .caption { left: 12px; right: 12px; bottom: 12px; max-width: none; padding: var(--s2); }
+  .caption h1 { font-size: 22px; }
+  .caption p { font-size: 14px; }
+  .cue { display: none; }
+  .tools { padding: var(--s4) var(--s2) var(--s3); }
+  .topbar { padding: var(--s2); }
+  .tabs { gap: var(--s2); }
+}
 
-        .result-title {
-            font-weight: 700;
-            margin-bottom: var(--space-4);
-            font-size: var(--type-lg);
-            color: var(--color-foreground);
-        }
-
-        .result-content {
-            font-size: var(--type-sm);
-            color: var(--color-card-foreground);
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .result-meta {
-            margin-top: var(--space-6);
-            padding-top: var(--space-6);
-            border-top: 1px solid var(--color-border);
-            font-size: var(--type-sm);
-            color: var(--color-muted-foreground);
-        }
-
-        .meta-item {
-            margin: var(--space-2) 0;
-        }
-
-        .issue-item {
-            background: var(--color-card);
-            padding: var(--space-4);
-            margin: var(--space-4) 0;
-            border-radius: 4px;
-            border: 1px solid var(--color-border);
-            border-left: 3px solid #F59E0B;
-        }
-
-        .issue-type {
-            font-weight: 700;
-            color: var(--color-foreground);
-            font-size: var(--type-sm);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: var(--space-2);
-        }
-
-        .issue-detail {
-            font-size: var(--type-sm);
-            color: var(--color-muted-foreground);
-            line-height: 1.5;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--color-border);
-            border-top-color: var(--color-accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .copy-button {
-            background: #10B981;
-            color: white;
-        }
-
-        .copy-button:hover:not(:disabled) {
-            background: #059669;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            header {
-                padding: var(--space-8) var(--space-4);
-            }
-
-            header h1 {
-                font-size: var(--type-xl);
-            }
-
-            .tab-content {
-                padding: var(--space-6) var(--space-4);
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            button {
-                width: 100%;
-            }
-        }
-
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --color-background: #0F172A;
-                --color-foreground: #F8FAFC;
-                --color-card: #1E293B;
-                --color-card-foreground: #F8FAFC;
-                --color-muted: #334155;
-                --color-muted-foreground: #CBD5E1;
-                --color-border: #334155;
-            }
-
-            input[type="text"],
-            textarea,
-            select {
-                background: var(--color-card);
-                color: var(--color-card-foreground);
-            }
-        }
-    </style>
+@media (prefers-reduced-motion: reduce) {
+  .waves { animation: none; }
+  .scene-track { height: 100vh; }
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Customs Copilot</h1>
-            <p>AI-Powered Customs Clearance Assistant</p>
-        </header>
 
-        <div class="status-bar">
-            <div>
-                <span class="status-indicator status-online" id="statusIndicator"></span>
-                <span id="statusText">Loading...</span>
-            </div>
-            <div id="modeText"></div>
-        </div>
+<div class="scene-track" id="track">
+  <div class="scene" id="scene">
+    <svg id="scene-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Aerial view of a container port that zooms into stacked containers as you scroll">
+      <g id="world"></g>
+    </svg>
 
-        <div class="tabs">
-            <button class="tab-button active" onclick="switchTab('query')">Query Reply</button>
-            <button class="tab-button" onclick="switchTab('charges')">Charge Checker</button>
-        </div>
-
-        <!-- Query Reply Tab -->
-        <div id="query" class="tab-content active">
-            <h2>Query Reply</h2>
-            <p class="description">Ask a question about your shipment and get a cited response based on customs documentation.</p>
-
-            <div class="form-group">
-                <label for="shipmentId">Shipment ID</label>
-                <input type="text" id="shipmentId" placeholder="e.g., SHIP-001" />
-            </div>
-
-            <div class="form-group">
-                <label for="query">Your Question</label>
-                <textarea id="query" placeholder="e.g., What documents are required for this import?"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="documents">Documents (JSON)</label>
-                <textarea id="documents" placeholder='[{"name": "invoice.pdf", "content": "..."}]'></textarea>
-            </div>
-
-            <div class="button-group">
-                <button class="btn-primary" onclick="processQuery()">Generate Response</button>
-                <button class="btn-secondary" onclick="clearQueryForm()">Clear</button>
-            </div>
-
-            <div id="queryResult" class="result-box"></div>
-        </div>
-
-        <!-- Charge Checker Tab -->
-        <div id="charges" class="tab-content">
-            <h2>Charge Checker</h2>
-            <p class="description">Validate charges against tariff rates and flag discrepancies.</p>
-
-            <div class="form-group">
-                <label for="invoiceId">Invoice ID</label>
-                <input type="text" id="invoiceId" placeholder="e.g., INV-001" />
-            </div>
-
-            <div class="form-group">
-                <label for="port">Port/CFS</label>
-                <input type="text" id="port" placeholder="e.g., INMAA4" />
-            </div>
-
-            <div class="form-group">
-                <label for="chargesJson">Charges (JSON)</label>
-                <textarea id="chargesJson" placeholder='[{"description": "Port handling", "tariff_ref": "PH001", "amount": 1000, "gst": 180}]'></textarea>
-            </div>
-
-            <div class="button-group">
-                <button class="btn-primary" onclick="checkCharges()">Validate Charges</button>
-                <button class="btn-secondary" onclick="clearChargesForm()">Clear</button>
-            </div>
-
-            <div id="chargesResult" class="result-box"></div>
-        </div>
+    <div class="topbar">
+      <div class="brand">Customs Copilot</div>
+      <div class="pill" id="status" role="status">Checking service</div>
     </div>
 
-    <script>
-        const API_BASE = window.location.origin + '/api';
+    <div class="caption" aria-live="polite">
+      <div class="kicker" id="phase-kicker">Port overview</div>
+      <h1 id="phase-title">Container port from above</h1>
+      <p id="phase-text">Scroll to move closer to the yard.</p>
+    </div>
 
-        window.addEventListener('DOMContentLoaded', () => {
-            checkSystemStatus();
-        });
+    <a class="cue" href="#tools">Go to tools</a>
+    <div class="progress" id="progress"></div>
+  </div>
+</div>
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
+<main class="tools" id="tools">
+  <div class="tabs" role="tablist" aria-label="Tools">
+    <button class="tab" role="tab" id="tab-query" aria-controls="panel-query" aria-selected="true">Query reply</button>
+    <button class="tab" role="tab" id="tab-charges" aria-controls="panel-charges" aria-selected="false" tabindex="-1">Charge check</button>
+  </div>
 
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
+  <section class="panel" id="panel-query" role="tabpanel" aria-labelledby="tab-query">
+    <h2>Draft a reply to a customs query</h2>
+    <p class="lede">Choose a shipment and a question. Every sentence in the draft is checked against that shipment's documents. Nothing is sent; you approve before copying.</p>
 
-        async function checkSystemStatus() {
-            try {
-                const response = await fetch(`${API_BASE}/status`);
-                const data = await response.json();
+    <div class="grid">
+      <div class="field">
+        <label for="shipment">Shipment</label>
+        <select id="shipment"></select>
+      </div>
+      <div class="field">
+        <label for="sample-q">Sample question</label>
+        <select id="sample-q"></select>
+      </div>
+    </div>
 
-                const indicator = document.getElementById('statusIndicator');
-                const statusText = document.getElementById('statusText');
-                const modeText = document.getElementById('modeText');
+    <div class="field">
+      <label for="question">Officer question</label>
+      <textarea id="question" maxlength="2000" placeholder="Type the officer's question"></textarea>
+    </div>
 
-                indicator.className = 'status-indicator status-online';
-                statusText.textContent = `System: ${data.status.charAt(0).toUpperCase() + data.status.slice(1)}`;
-                modeText.textContent = `Mode: ${data.llm_mode === 'enabled' ? 'AI-Powered' : 'Offline Mode'}`;
+    <label class="check" id="llm-row" hidden>
+      <input type="checkbox" id="use-llm"> Use AI drafting (verified before it reaches you)
+    </label>
 
-            } catch (error) {
-                document.getElementById('statusIndicator').className = 'status-indicator status-offline';
-                document.getElementById('statusText').textContent = 'System: Offline Mode';
-                document.getElementById('modeText').textContent = '';
-            }
-        }
+    <div class="row">
+      <button class="btn" id="draft-btn">Draft reply</button>
+    </div>
+    <div class="status" id="query-status" role="status"></div>
 
-        async function processQuery() {
-            const shipmentId = document.getElementById('shipmentId').value;
-            const query = document.getElementById('query').value;
-            const documentsText = document.getElementById('documents').value;
-            const resultBox = document.getElementById('queryResult');
+    <div class="out" id="draft-out" hidden>
+      <div class="kicker" id="draft-meta"></div>
+      <div class="field">
+        <label for="draft-text">Draft</label>
+        <textarea id="draft-text"></textarea>
+      </div>
 
-            if (!query) {
-                showResult(resultBox, 'Please enter a question', 'error');
-                return;
-            }
+      <div id="sentences-wrap" hidden>
+        <div class="kicker">Cited sentences</div>
+        <ol class="sentences" id="sentences"></ol>
+      </div>
 
-            let documents = [];
-            if (documentsText) {
-                try {
-                    documents = JSON.parse(documentsText);
-                } catch (e) {
-                    showResult(resultBox, 'Invalid JSON in documents field', 'error');
-                    return;
-                }
-            }
+      <div id="missing-wrap" hidden>
+        <div class="kicker">Documents to attach</div>
+        <ul class="plain" id="missing"></ul>
+      </div>
 
-            showResult(resultBox, '<span class="loading"></span> Processing...', 'success');
+      <div id="notes-wrap" hidden>
+        <div class="kicker">Notes</div>
+        <ul class="plain" id="notes"></ul>
+      </div>
 
-            try {
-                const response = await fetch(`${API_BASE}/query-reply`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query,
-                        shipment_id: shipmentId,
-                        documents
-                    })
-                });
+      <div id="rejected-wrap" hidden>
+        <div class="kicker">Rejected by the verifier</div>
+        <ul class="plain" id="rejected"></ul>
+      </div>
 
-                const data = await response.json();
+      <div id="evidence-wrap" hidden>
+        <div class="kicker">Evidence lines</div>
+        <ul class="plain" id="evidence"></ul>
+      </div>
 
-                if (!response.ok) {
-                    showResult(resultBox, `Error: ${data.error}`, 'error');
-                    return;
-                }
+      <div class="row">
+        <button class="btn" id="approve-btn">Approve draft</button>
+        <button class="btn ghost" id="copy-btn" disabled>Copy</button>
+        <button class="btn ghost" id="reject-btn">Reject</button>
+      </div>
+      <div class="status" id="approve-status" role="status"></div>
+    </div>
+  </section>
 
-                let resultHtml = '<div class="result-title">Draft Response</div>';
-                resultHtml += `<div class="result-content">${escapeHtml(data.draft_response)}</div>`;
+  <section class="panel" id="panel-charges" role="tabpanel" aria-labelledby="tab-charges" hidden>
+    <h2>Check a port or CFS invoice</h2>
+    <p class="lede">Paste the invoice text. Each charge is compared with the published tariff card, and every flag shows the tariff line it disagrees with.</p>
 
-                resultHtml += '<div class="result-meta">';
-                resultHtml += '<strong>Verification Status</strong><br/>';
-                resultHtml += `<div class="meta-item">Documents Valid: ${data.verification.documents_valid ? '✓' : '✗'}</div>`;
-                resultHtml += `<div class="meta-item">Citations Valid: ${data.verification.citations_valid ? '✓' : '✗'}</div>`;
-                resultHtml += `<div class="meta-item">Ready for Approval: ${data.ready_for_approval ? '✓ Yes' : '✗ No'}</div>`;
+    <div class="grid">
+      <div class="field">
+        <label for="tariff-id">Tariff card (optional)</label>
+        <input type="text" id="tariff-id" placeholder="Leave blank to choose by terminal">
+      </div>
+      <div class="field" style="align-self: end;">
+        <button class="btn ghost" id="load-sample-btn">Load sample invoice</button>
+      </div>
+    </div>
 
-                if (data.verification.missing_documents.length > 0) {
-                    resultHtml += `<div class="meta-item">Missing: ${data.verification.missing_documents.join(', ')}</div>`;
-                }
-                resultHtml += '</div>';
+    <div class="field">
+      <label for="invoice-text">Invoice text</label>
+      <textarea id="invoice-text" maxlength="20000" style="min-height: 180px;" placeholder="TERMINAL: ...&#10;INVOICE NO: ..."></textarea>
+    </div>
 
-                if (data.ready_for_approval) {
-                    resultHtml += '<div class="button-group" style="margin-top: var(--space-6);"><button class="copy-button" onclick="copyToClipboard(this)">Copy Response</button></div>';
-                }
+    <div class="row">
+      <button class="btn" id="check-btn">Check invoice</button>
+    </div>
+    <div class="status" id="charge-status" role="status"></div>
 
-                showResult(resultBox, resultHtml, 'success');
+    <div class="out" id="charge-out" hidden>
+      <div class="summary">
+        <div><span>Terminal</span><strong id="sum-terminal"></strong></div>
+        <div><span>Dwell days</span><strong id="sum-dwell"></strong></div>
+        <div><span>Read with</span><strong id="sum-read"></strong></div>
+        <div><span>Overcharge before GST</span><strong id="sum-over"></strong></div>
+      </div>
+      <p class="explain" id="charge-explain"></p>
+      <div class="table-wrap" id="flags-wrap">
+        <table>
+          <thead>
+            <tr><th>Check</th><th>Line</th><th>Issue</th><th>Tariff line</th><th>Billed</th><th>Expected</th><th>Over</th></tr>
+          </thead>
+          <tbody id="flags"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
 
-            } catch (error) {
-                showResult(resultBox, `Error: ${error.message}`, 'error');
-            }
-        }
+<footer class="foot">
+  Drafts and checks only. A licensed professional remains responsible for anything filed. Sample data is synthetic.
+</footer>
 
-        async function checkCharges() {
-            const invoiceId = document.getElementById('invoiceId').value;
-            const port = document.getElementById('port').value;
-            const chargesText = document.getElementById('chargesJson').value;
-            const resultBox = document.getElementById('chargesResult');
+<script>
+(function () {
+  "use strict";
 
-            if (!chargesText) {
-                showResult(resultBox, 'Please enter charge details', 'error');
-                return;
-            }
+  /* ---------- Scene: aerial port that zooms into containers ---------- */
 
-            let charges = [];
-            try {
-                charges = JSON.parse(chargesText);
-            } catch (e) {
-                showResult(resultBox, 'Invalid JSON in charges field', 'error');
-                return;
-            }
+  var NS = "http://www.w3.org/2000/svg";
+  var VB_W = 1200, VB_H = 700;
+  var CX = VB_W / 2, CY = VB_H / 2;
+  var COLORS = ["#0369A1", "#475569", "#94A3B8", "#1E3A5F", "#64748B"];
+  var world = document.getElementById("world");
+  var track = document.getElementById("track");
+  var progress = document.getElementById("progress");
+  var kicker = document.getElementById("phase-kicker");
+  var title = document.getElementById("phase-title");
+  var text = document.getElementById("phase-text");
 
-            showResult(resultBox, '<span class="loading"></span> Validating...', 'success');
+  function make(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  }
 
-            try {
-                const response = await fetch(`${API_BASE}/check-charges`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: invoiceId,
-                        port,
-                        charges
-                    })
-                });
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function smooth(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  function easeInOut(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
 
-                const data = await response.json();
+  var gSea = make("g", {}, world);
+  make("rect", { x: 0, y: 0, width: VB_W, height: VB_H, fill: "#E6EEF5" }, gSea);
+  var waves = make("g", { class: "waves" }, gSea);
+  for (var w = 0; w < 14; w++) {
+    var wy = 30 + w * 48, d = "";
+    for (var x = -80; x <= 340; x += 40) {
+      d += (x === -80 ? "M" : "L") + x + " " + (wy + ((x / 40) % 2 ? 6 : 0)) + " ";
+    }
+    make("path", { d: d, fill: "none", stroke: "#FFFFFF", "stroke-opacity": "0.7", "stroke-width": "2" }, waves);
+  }
 
-                if (!response.ok) {
-                    showResult(resultBox, `Error: ${data.error}`, 'error');
-                    return;
-                }
+  make("path", { d: "M40 470 L250 470 L226 512 L64 512 Z", fill: "#334155" }, world);
+  for (var s = 0; s < 6; s++) {
+    make("rect", { x: 62 + s * 28, y: 448, width: 24, height: 20, rx: 1, fill: COLORS[s % COLORS.length] }, world);
+  }
 
-                let resultHtml = '<div class="result-title">Charge Validation Result</div>';
-                resultHtml += `<div class="meta-item"><strong>Status:</strong> ${data.status}</div>`;
-                resultHtml += `<div class="meta-item"><strong>Total Variance:</strong> ₹${data.total_variance.toFixed(2)}</div>`;
+  make("rect", { x: 300, y: 0, width: 28, height: VB_H, fill: "#CBD5E1" }, world);
+  make("rect", { x: 328, y: 0, width: VB_W - 328, height: VB_H, fill: "#EEF2F6" }, world);
 
-                if (data.issues.length > 0) {
-                    resultHtml += `<div style="margin-top: var(--space-4);"><strong>${data.issues.length} Issue(s) Found</strong></div>`;
-                    data.issues.forEach(issue => {
-                        resultHtml += `
-                            <div class="issue-item">
-                                <div class="issue-type">${issue.type.replace(/_/g, ' ')}</div>
-                                <div class="issue-detail">
-                                    Charge: ${issue.charge}<br/>
-                                    Billed: ₹${issue.billed.toFixed(2)} | Expected: ₹${issue.expected.toFixed(2)}<br/>
-                                    Tariff Ref: ${issue.tariff_ref}<br/>
-                                    ${issue.message}
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    resultHtml += '<div class="meta-item" style="color: #10B981;"><strong>✓ All charges are valid!</strong></div>';
-                }
+  for (var c = 0; c < 4; c++) {
+    make("rect", { x: 300, y: 110 + c * 140, width: 44, height: 22, rx: 2, fill: "#0F172A", "fill-opacity": "0.85" }, world);
+  }
 
-                showResult(resultBox, resultHtml, data.issues.length > 0 ? 'warning' : 'success');
+  var BW = 84, BH = 72, GX = 18, GY = 16, COLS = 8, ROWS = 5;
+  var X0 = 351, Y0 = 168;
+  var FX = X0 + (BW + GX) * 3 + BW / 2;
+  var FY = Y0 + (BH + GY) * 2 + BH / 2;
 
-            } catch (error) {
-                showResult(resultBox, `Error: ${error.message}`, 'error');
-            }
-        }
+  var gYard = make("g", {}, world);
+  var blocks = [];
+  var maxD = 0;
 
-        function showResult(box, content, type) {
-            box.innerHTML = content;
-            box.className = `result-box show ${type}`;
-            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+  for (var r = 0; r < ROWS; r++) {
+    for (var col = 0; col < COLS; col++) {
+      var bx = X0 + (BW + GX) * col, by = Y0 + (BH + GY) * r;
+      var g = make("g", {}, gYard);
+      var base = make("rect", { x: bx, y: by, width: BW, height: BH, rx: 2, fill: "#DCE3EC" }, g);
+      var cg = make("g", {}, g);
+      var cons = [];
+      for (var k = 0; k < 6; k++) {
+        var px = bx + 3 + (k % 3) * 27, py = by + 8.5 + Math.floor(k / 3) * 29;
+        var rect = make("rect", {
+          x: px, y: py, width: 24, height: 26, rx: 1,
+          fill: COLORS[(col + r + k) % COLORS.length]
+        }, cg);
+        cons.push(rect);
+      }
+      var dist = Math.hypot(bx + BW / 2 - FX, by + BH / 2 - FY);
+      if (dist > maxD) maxD = dist;
+      blocks.push({ base: base, cons: cons, dist: dist });
+    }
+  }
 
-        function copyToClipboard(button) {
-            const text = button.closest('.result-box').querySelector('.result-content').innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                button.textContent = '✓ Copied!';
-                setTimeout(() => { button.textContent = 'Copy Response'; }, 2000);
-            });
-        }
+  var phases = [
+    { until: 0.25, k: "Port overview", t: "Container port from above", p: "Scroll to move closer to the yard." },
+    { until: 0.6, k: "Container yard", t: "Blocks open into containers", p: "Each block resolves into individual containers as you approach." },
+    { until: 2, k: "Ready for clearance", t: "Containers in the stack", p: "Continue to the tools to draft replies and check port charges." }
+  ];
+  var phaseIndex = -1;
 
-        function clearQueryForm() {
-            document.getElementById('shipmentId').value = '';
-            document.getElementById('query').value = '';
-            document.getElementById('documents').value = '';
-            document.getElementById('queryResult').className = 'result-box';
-        }
+  function render(p) {
+    var e = easeInOut(p);
+    var s = 1 + 4 * e;
+    var fx = CX + (FX - CX) * e, fy = CY + (FY - CY) * e;
+    var tx = CX - s * fx, ty = CY - s * fy;
+    world.setAttribute("transform", "translate(" + tx.toFixed(2) + " " + ty.toFixed(2) + ") scale(" + s.toFixed(4) + ")");
 
-        function clearChargesForm() {
-            document.getElementById('invoiceId').value = '';
-            document.getElementById('port').value = '';
-            document.getElementById('chargesJson').value = '';
-            document.getElementById('chargesResult').className = 'result-box';
-        }
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i];
+      b.base.setAttribute("fill-opacity", (1 - 0.8 * smooth(0.25, 0.55, p)).toFixed(3));
+      var start = 0.3 + 0.3 * (b.dist / maxD);
+      for (var j = 0; j < b.cons.length; j++) {
+        var t = smooth(start + j * 0.02, start + 0.22 + j * 0.02, p);
+        b.cons[j].setAttribute("opacity", t.toFixed(3));
+        b.cons[j].setAttribute("transform", "translate(0 " + ((1 - t) * -18).toFixed(2) + ")");
+      }
+    }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-    </script>
+    var idx = 0;
+    while (idx < phases.length - 1 && p >= phases[idx].until) idx++;
+    if (idx !== phaseIndex) {
+      phaseIndex = idx;
+      kicker.textContent = phases[idx].k;
+      title.textContent = phases[idx].t;
+      text.textContent = phases[idx].p;
+    }
+
+    progress.style.width = (p * 100).toFixed(2) + "%";
+  }
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) {
+    render(1);
+  } else {
+    function progressNow() {
+      var rect = track.getBoundingClientRect();
+      var total = track.offsetHeight - window.innerHeight;
+      return total > 0 ? clamp(-rect.top / total, 0, 1) : 0;
+    }
+
+    function onScroll() { render(progressNow()); }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    render(progressNow());
+  }
+
+  /* ---------- Tools ---------- */
+
+  var API = "/api";
+  var $ = function (id) { return document.getElementById(id); };
+  var llmAvailable = false;
+  var approved = false;
+
+  function setStatus(msg, isErr, el) {
+    el.textContent = msg;
+    el.className = "status" + (isErr ? " err" : "");
+  }
+
+  function api(path, opts) {
+    var r;
+    try {
+      r = fetch(API + path, opts);
+    } catch (e) {
+      return Promise.reject(new Error("The service cannot be reached."));
+    }
+    return r.then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (body) {
+        if (!res.ok) throw new Error((body && body.error) || ("Request failed (" + res.status + ")."));
+        return body;
+      });
+    }, function () { throw new Error("The service cannot be reached."); });
+  }
+
+  function postJson(path, data) {
+    return api(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+  }
+
+  function listOf(body, key) {
+    if (Array.isArray(body)) return body;
+    return (body && body[key]) || [];
+  }
+
+  function fill(select, items) {
+    select.textContent = "";
+    items.forEach(function (item) {
+      var o = document.createElement("option");
+      o.value = item.value;
+      o.textContent = item.label;
+      select.appendChild(o);
+    });
+  }
+
+  function addItem(list, text, extra) {
+    var li = document.createElement("li");
+    li.textContent = text;
+    if (extra) {
+      var c = document.createElement("span");
+      c.className = "cite";
+      c.textContent = extra;
+      li.appendChild(c);
+    }
+    list.appendChild(li);
+  }
+
+  function toggle(wrap, on) { wrap.hidden = !on; }
+
+  /* Tabs */
+
+  var tabs = [$("tab-query"), $("tab-charges")];
+  var panels = [$("panel-query"), $("panel-charges")];
+
+  function selectTab(i) {
+    tabs.forEach(function (t, n) {
+      var on = n === i;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      t.tabIndex = on ? 0 : -1;
+      panels[n].hidden = !on;
+    });
+    tabs[i].focus();
+  }
+
+  tabs.forEach(function (t, n) {
+    t.addEventListener("click", function () { selectTab(n); });
+    t.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") selectTab((n + 1) % tabs.length);
+      if (e.key === "ArrowLeft") selectTab((n + tabs.length - 1) % tabs.length);
+    });
+  });
+
+  /* Health */
+
+  api("/health").then(function (h) {
+    llmAvailable = !!(h && h.llm_available);
+    $("status").textContent = llmAvailable ? "AI drafting on" : "Offline mode";
+    toggle($("llm-row"), llmAvailable);
+  }).catch(function () {
+    $("status").textContent = "Service unavailable";
+  });
+
+  /* Query reply */
+
+  var qSelect = $("shipment"), sampleQ = $("sample-q"), question = $("question");
+
+  function loadShipments() {
+    api("/shipments").then(function (body) {
+      var items = listOf(body, "shipments").map(function (s) {
+        var id = typeof s === "string" ? s : (s.id || s.shipment_id);
+        return { value: id, label: id };
+      });
+      fill(qSelect, items);
+      if (items.length) loadQuestions(items[0].value);
+      else setStatus("No shipments are available.", false, $("query-status"));
+    }).catch(function (err) {
+      setStatus(err.message, true, $("query-status"));
+    });
+  }
+
+  function loadQuestions(shipmentId) {
+    api("/questions?shipment_id=" + encodeURIComponent(shipmentId)).then(function (body) {
+      var items = listOf(body, "questions").map(function (q) {
+        var t = typeof q === "string" ? q : (q.question || q.text || "");
+        return { value: t, label: t.length > 90 ? t.slice(0, 87) + "..." : t };
+      });
+      fill(sampleQ, [{ value: "", label: "Choose a sample question" }].concat(items));
+      question.value = items.length ? items[0].value : "";
+    }).catch(function (err) {
+      setStatus(err.message, true, $("query-status"));
+    });
+  }
+
+  qSelect.addEventListener("change", function () { loadQuestions(qSelect.value); });
+  sampleQ.addEventListener("change", function () { if (sampleQ.value) question.value = sampleQ.value; });
+  question.addEventListener("input", function () { approved = false; });
+
+  function setApproved(on, msg) {
+    approved = on;
+    $("copy-btn").disabled = !on;
+    setStatus(msg || "", false, $("approve-status"));
+  }
+
+  function renderDraft(d) {
+    $("draft-out").hidden = false;
+    $("draft-meta").textContent = "Mode: " + (d.mode || "offline") + "   Intent: " + (d.intent || "general");
+    $("draft-text").value = d.draft || "";
+
+    var sentences = d.sentences || [];
+    var sl = $("sentences");
+    sl.textContent = "";
+    sentences.forEach(function (s) {
+      var li = document.createElement("li");
+      li.textContent = s.text;
+      if (s.cite) {
+        var c = document.createElement("span");
+        c.className = "cite";
+        c.textContent = s.cite;
+        li.appendChild(c);
+      }
+      if (s.quote) {
+        var q = document.createElement("span");
+        q.className = "quote";
+        q.textContent = "Quote: " + s.quote;
+        li.appendChild(q);
+      }
+      sl.appendChild(li);
+    });
+    toggle($("sentences-wrap"), sentences.length > 0);
+
+    fillList("missing", d.missing || [], function (m) { return "Please attach: " + m; });
+    toggle($("missing-wrap"), (d.missing || []).length > 0);
+
+    fillList("notes", d.notes || [], function (n) { return n; });
+    toggle($("notes-wrap"), (d.notes || []).length > 0);
+
+    fillList("rejected", d.rejected || [], function (r) { return r.text || r; });
+    toggle($("rejected-wrap"), (d.rejected || []).length > 0);
+
+    var ev = d.evidence || [];
+    fillList("evidence", ev, function (e) {
+      return (e.doc ? e.doc + ", line " + e.line + ": " : "") + (e.text || "");
+    }, function (e) { return e.id; });
+    toggle($("evidence-wrap"), ev.length > 0);
+
+    setApproved(false, d.status || "DRAFT - not sent. Needs agent approval.");
+  }
+
+  function fillList(id, items, label, cite) {
+    var list = $(id);
+    list.textContent = "";
+    items.forEach(function (item) { addItem(list, label(item), cite ? cite(item) : null); });
+  }
+
+  $("draft-text").addEventListener("input", function () { setApproved(false, "Draft edited. Approve again before copying."); });
+
+  $("draft-btn").addEventListener("click", function () {
+    var q = question.value.trim();
+    if (!q) { setStatus("Enter a question first.", true, $("query-status")); return; }
+    var btn = $("draft-btn");
+    btn.disabled = true;
+    setStatus("Drafting...", false, $("query-status"));
+    postJson("/draft", {
+      shipment_id: qSelect.value,
+      question: q,
+      use_llm: llmAvailable && $("use-llm").checked
+    }).then(function (d) {
+      setStatus("", false, $("query-status"));
+      renderDraft(d);
+    }).catch(function (err) {
+      $("draft-out").hidden = true;
+      setStatus(err.message, true, $("query-status"));
+    }).then(function () { btn.disabled = false; });
+  });
+
+  $("approve-btn").addEventListener("click", function () {
+    setApproved(true, "Approved for agent review. Nothing has been sent.");
+  });
+
+  $("copy-btn").addEventListener("click", function () {
+    if (!approved) return;
+    var text = $("draft-text").value;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function () {
+        setStatus("Copied. Nothing has been sent.", false, $("approve-status"));
+      }, function () {
+        setStatus("Copy failed. Select the text and copy it manually.", true, $("approve-status"));
+      });
+    }
+  });
+
+  $("reject-btn").addEventListener("click", function () {
+    $("draft-out").hidden = true;
+    setStatus("Draft rejected.", false, $("query-status"));
+  });
+
+  /* Charge check */
+
+  $("load-sample-btn").addEventListener("click", function () {
+    var btn = this;
+    btn.disabled = true;
+    api("/cfs/samples").then(function (body) {
+      var samples = listOf(body, "samples");
+      var first = samples[0];
+      var t = first && (first.text || first.invoice_text || first.content);
+      if (!t) throw new Error("No sample invoice is available.");
+      $("invoice-text").value = t;
+      setStatus("Sample loaded.", false, $("charge-status"));
+    }).catch(function (err) {
+      setStatus(err.message, true, $("charge-status"));
+    }).then(function () { btn.disabled = false; });
+  });
+
+  $("check-btn").addEventListener("click", function () {
+    var t = $("invoice-text").value.trim();
+    if (!t) { setStatus("Paste an invoice first.", true, $("charge-status")); return; }
+    var btn = $("check-btn");
+    btn.disabled = true;
+    setStatus("Checking...", false, $("charge-status"));
+    var payload = { text: t };
+    var tariff = $("tariff-id").value.trim();
+    if (tariff) payload.tariff_id = tariff;
+    postJson("/cfs/check", payload).then(function (d) {
+      setStatus("", false, $("charge-status"));
+      renderCharges(d);
+    }).catch(function (err) {
+      $("charge-out").hidden = true;
+      setStatus(err.message, true, $("charge-status"));
+    }).then(function () { btn.disabled = false; });
+  });
+
+  function renderCharges(d) {
+    $("charge-out").hidden = false;
+    $("sum-terminal").textContent = d.terminal || "-";
+    $("sum-dwell").textContent = d.dwell_days != null ? String(d.dwell_days) : "-";
+    $("sum-read").textContent = d.read_with || "-";
+    $("sum-over").textContent = d.overcharge_before_gst || "0.00";
+    $("charge-explain").textContent = d.explanation || "";
+
+    var body = $("flags");
+    body.textContent = "";
+    var flags = d.flags || [];
+    if (!flags.length) {
+      var tr = document.createElement("tr");
+      var td = document.createElement("td");
+      td.colSpan = 7;
+      td.textContent = "No discrepancies found against the tariff card.";
+      tr.appendChild(td);
+      body.appendChild(tr);
+      return;
+    }
+    flags.forEach(function (f) {
+      var tr = document.createElement("tr");
+      [f.code, f.line, f.message, f.tariff_ref, f.billed, f.expected, f.overcharge].forEach(function (v) {
+        var td = document.createElement("td");
+        td.textContent = v == null ? "" : String(v);
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  loadShipments();
+})();
+</script>
 </body>
 </html>
