@@ -79,6 +79,13 @@ def check_api():
     expect(c.post("/api/cfs/check", json={"text": "x" * 20001}).status_code == 400, "invoice limit 400")
     ok = c.post("/api/cfs/check", json={"text": samples[0]["text"], "tariff_id": "SAMPLE_A"})
     expect(ok.status_code == 200 and ok.json()["flags"] == [], "clean invoice has no flags")
+    backwards = samples[0]["text"].replace("GATE OUT: 2026-10-06", "GATE OUT: 2026-09-30")
+    expect(c.post("/api/cfs/check", json={"text": backwards}).status_code == 422, "gate out before gate in must be 422")
+    twice = samples[0]["text"].replace("LINE 2 | DOC", "LINE 9 | STORAGE | Storage days | 2 | 300.00 | 600.00\nLINE 2 | DOC")
+    codes = [f["code"] for f in c.post("/api/cfs/check", json={"text": twice}).json()["flags"]]
+    expect("DUPLICATE" in codes, "second storage line must be flagged")
+    string_flag = c.post("/api/draft", json={"shipment_id": "SHP-1001", "question": "hs?", "use_llm": "true"}).json()
+    expect(string_flag["mode"] == "offline", "use_llm must be a real boolean")
 
 
 if __name__ == "__main__":

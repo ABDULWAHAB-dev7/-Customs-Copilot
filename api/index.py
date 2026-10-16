@@ -91,7 +91,7 @@ async def draft_reply(request):
     shipment = _shipment(shipment_id)
     if shipment is None:
         return _error(f"Unknown shipment '{shipment_id}'.", 404)
-    use_llm = bool(data.get("use_llm", False)) and llm.configured()
+    use_llm = data.get("use_llm") is True and llm.configured()
     result = draft(shipment, question, use_llm=use_llm, llm_call=llm.complete_json if use_llm else None)
     return JSONResponse({"shipment_id": shipment_id, **result})
 

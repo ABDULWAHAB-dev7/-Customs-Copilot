@@ -605,9 +605,22 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
     });
   }
 
-  qSelect.addEventListener("change", function () { loadQuestions(qSelect.value); });
+  var draftSeq = 0;
+
+  function clearDraft() {
+    draftSeq++;
+    $("draft-out").hidden = true;
+    setApproved(false, "");
+  }
+
+  qSelect.addEventListener("change", function () {
+    clearDraft();
+    loadQuestions(qSelect.value);
+  });
   sampleQ.addEventListener("change", function () { if (sampleQ.value) question.value = sampleQ.value; });
-  question.addEventListener("input", function () { approved = false; });
+  question.addEventListener("input", function () {
+    if (!$("draft-out").hidden) setApproved(false, "Question edited. Draft again before approving.");
+  });
 
   function setApproved(on, msg) {
     approved = on;
@@ -674,6 +687,7 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
     var q = question.value.trim();
     if (!q) { setStatus("Enter a question first.", true, $("query-status")); return; }
     var btn = $("draft-btn");
+    var seq = draftSeq;
     btn.disabled = true;
     setStatus("Drafting...", false, $("query-status"));
     postJson("/draft", {
@@ -681,9 +695,11 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
       question: q,
       use_llm: llmAvailable && $("use-llm").checked
     }).then(function (d) {
+      if (seq !== draftSeq) return;
       setStatus("", false, $("query-status"));
       renderDraft(d);
     }).catch(function (err) {
+      if (seq !== draftSeq) return;
       $("draft-out").hidden = true;
       setStatus(err.message, true, $("query-status"));
     }).then(function () { btn.disabled = false; });

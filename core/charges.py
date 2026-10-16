@@ -55,8 +55,10 @@ def read_invoice(text):
         gate_in = date.fromisoformat(header["GATE IN"])
         gate_out = date.fromisoformat(header["GATE OUT"])
         subtotal, gst, total = money(footer["SUBTOTAL"]), money(footer["GST"]), money(footer["TOTAL"])
-    except (ValueError, ArithmeticError) as e:
-        raise ReadError(f"Invoice values could not be read: {e}")
+    except (ValueError, ArithmeticError):
+        raise ReadError("SUBTOTAL, GST and TOTAL must be amounts, and GATE IN and GATE OUT must be YYYY-MM-DD dates.")
+    if gate_out < gate_in:
+        raise ReadError("GATE OUT is before GATE IN.")
 
     return {
         "terminal": header["TERMINAL"],
@@ -109,6 +111,7 @@ def check(inv, card):
     charges = card["charges"]
     storage = card["storage"]
     seen = set()
+    storage_seen = False
 
     for ln in inv["lines"]:
         code, n = ln["code"], ln["line"]
@@ -119,6 +122,10 @@ def check(inv, card):
                               "Line arithmetic", fmt(ln["amount"]), fmt(expected_amount), fmt(over)))
 
         if code == "STORAGE":
+            if storage_seen:
+                flags.append(flag("DUPLICATE", n, "A second storage line is billed; storage is checked once per invoice.",
+                                  "Duplicate storage", fmt(ln["amount"]), "0.00", fmt(ln["amount"])))
+            storage_seen = True
             continue
 
         key = (code, ln["description"], ln["amount"])
