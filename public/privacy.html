@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy - Customs Copilot</title>
+<meta name="description" content="How Customs Copilot handles the text you enter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #F3EFE7; --ink: #161511; --ink-2: #3B3830; --muted: #6F6A5E; --line: #D3CBBA; --accent-ink: #A4431B; color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Archivo', Arial, sans-serif; background: var(--paper); color: var(--ink); line-height: 1.6; font-size: 17px; -webkit-font-smoothing: antialiased; }
+main { max-width: 760px; margin: 0 auto; padding: 72px 24px 96px; }
+a { color: var(--accent-ink); }
+.back { font-size: 14px; color: var(--muted); text-decoration: none; }
+h1 { margin-top: 28px; font-size: clamp(36px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.02em; font-weight: 700; font-stretch: 88%; }
+.draft { margin-top: 20px; padding: 14px 16px; border: 1px solid var(--line); font-size: 15px; color: var(--ink-2); }
+h2 { margin-top: 40px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+p, li { color: var(--ink-2); margin-top: 12px; }
+ul { padding-left: 20px; }
+.placeholder { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; background: #E8E2D5; padding: 1px 6px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">Back to Customs Copilot</a>
+  <h1>Privacy</h1>
+  <p class="draft">Draft for review. This text describes how the code behaves today. It must be reviewed by counsel before it is relied on.</p>
+
+  <h2>What the service receives</h2>
+  <p>The tools receive the text you type or paste: an officer's question, a shipment selection, an optional tariff card name, and invoice text for the charge check.</p>
+
+  <h2>What is stored</h2>
+  <p>The API keeps no state between requests. It reads only the sample data bundled with the application. Requests are not written to a database by this code. The hosting provider may keep its own request logs, under its own policy.</p>
+
+  <h2>AI drafting</h2>
+  <p>AI drafting is off unless you tick the option and the operator has configured a model key. When it is on, the question you asked and the document lines matched to it are sent to the model provider, Google Gemini, to produce a proposed draft. The proposal is checked against the document lines before you see it. Sentences that fail the check are removed.</p>
+
+  <h2>Personal data</h2>
+  <p>The sample shipments, invoices and tariff cards are synthetic. Do not enter real personal, customer or shipment data unless the operator has confirmed in writing that this is allowed.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this notice: <span class="placeholder">[contact address to be added]</span></p>
+</main>
+</body>
+</html>

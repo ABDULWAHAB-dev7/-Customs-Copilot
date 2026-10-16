@@ -3,410 +3,305 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customs Copilot — Cited customs replies &amp; port charge checks</title>
-<meta name="description" content="Draft cited replies to customs queries and verify port or CFS invoices against tariff cards. Nothing is sent without your approval.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310B981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='18' height='10' rx='1.5' fill='%2307080D'/%3E%3Cline x1='9' y1='7' x2='9' y2='17'/%3E%3Cline x1='15' y1='7' x2='15' y2='17'/%3E%3Cline x1='3' y1='20' x2='21' y2='20'/%3E%3C/svg%3E">
+<title>Customs Copilot</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 fill=%27%23C8582A%27/%3E%3C/svg%3E">
+<meta name="description" content="Draft customs officer replies with a source for every sentence, and check port or CFS invoices against the tariff card. You approve before anything is copied.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #07080D;
-  --surface: #0D0F18;
-  --surface-2: #131624;
-  --surface-3: #171B2C;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.18);
-  --ink: #F3F4F6;
-  --ink-2: #C7CBD6;
-  --muted: #8B93A7;
-
-  --accent: #10B981;
-  --accent-2: #06B6D4;
-  --accent-ink: #34D399;
-  --accent-grad: linear-gradient(120deg, #10B981 0%, #06B6D4 100%);
-  --accent-grad-soft: linear-gradient(120deg, rgba(16,185,129,0.14), rgba(6,182,212,0.14));
-  --glow: rgba(16, 185, 129, 0.32);
-
-  --glass: rgba(19, 22, 36, 0.55);
-  --glass-strong: rgba(19, 22, 36, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.08);
-
-  --bad: #F87171;
-  --bad-bg: rgba(248, 113, 113, 0.1);
-  --good: #34D399;
-
-  --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 64px;
-  --radius: 16px;
-  --radius-sm: 10px;
-  color-scheme: dark;
+  --paper: #F3EFE7;
+  --paper-2: #E8E2D5;
+  --ink: #161511;
+  --ink-2: #3B3830;
+  --muted: #6F6A5E;
+  --line: #D3CBBA;
+  --dark: #12110F;
+  --dark-2: #1D1B17;
+  --dark-ink: #F3EFE7;
+  --dark-muted: #A7A195;
+  --dark-line: rgba(243, 239, 231, 0.16);
+  --accent: #C8582A;
+  --accent-ink: #A4431B;
+  --bad: #9A2E1C;
+  --ok: #2E6A4E;
+  --display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --gutter: clamp(20px, 4vw, 56px);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
-
 body {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  background: var(--bg);
+  font-family: var(--display);
+  font-stretch: 100%;
+  background: var(--paper);
   color: var(--ink);
-  line-height: 1.6;
+  font-size: 17px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
+::selection { background: var(--accent); color: #FFFDF8; }
+img, svg { display: block; }
+button, input, select, textarea { font: inherit; color: inherit; }
 
-.mono { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; }
+.icon { width: 1em; height: 1em; display: inline-block; flex: 0 0 auto; vertical-align: -0.125em; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.mono { font-family: var(--mono); }
+.label {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dark .label { color: var(--dark-muted); }
 
-::selection { background: var(--accent); color: #04140D; }
+.progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); z-index: 50; }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #262B3D; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #343B57; }
+/* ---------- Navigation ---------- */
 
-.icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
-
-/* ---------- Ambient decoration ---------- */
-
-.ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-
-.grid-decor {
-  position: absolute; inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.09) 1px, transparent 1px);
-  background-size: 28px 28px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black 35%, transparent 85%);
-  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black 35%, transparent 85%);
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px var(--gutter);
+  background: var(--dark);
+  color: var(--dark-ink);
+  border-bottom: 1px solid var(--dark-line);
+}
+.wordmark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; text-decoration: none; color: inherit; }
+.wordmark .icon { font-size: 22px; color: var(--accent); }
+.nav-links { display: flex; gap: 28px; font-size: 15px; }
+.nav-links a { color: var(--dark-muted); text-decoration: none; }
+.nav-links a:focus-visible, .nav .btn-line:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.nav-links a[aria-current="true"] { color: var(--dark-ink); }
+.btn-line {
+  font-size: 14px; font-weight: 600; color: var(--dark-ink); text-decoration: none;
+  border: 1px solid var(--dark-line); padding: 9px 14px; border-radius: 2px; background: transparent;
+  cursor: pointer;
 }
 
-.blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.55; will-change: transform; animation: drift-blob 24s ease-in-out infinite alternate; }
-.blob.b1 { width: 560px; height: 560px; left: -160px; top: -160px; background: radial-gradient(circle at 30% 30%, rgba(16,185,129,0.55), transparent 70%); animation-delay: 0s; }
-.blob.b2 { width: 460px; height: 460px; right: -140px; top: 8%; background: radial-gradient(circle at 60% 40%, rgba(6,182,212,0.5), transparent 70%); animation-delay: -7s; }
-.blob.b3 { width: 520px; height: 520px; left: 15%; top: 70%; background: radial-gradient(circle at 50% 50%, rgba(16,185,129,0.3), transparent 70%); opacity: 0.4; animation-delay: -14s; }
-.blob.b4 { width: 420px; height: 420px; right: 8%; bottom: -100px; background: radial-gradient(circle at 50% 50%, rgba(6,182,212,0.35), transparent 70%); animation-delay: -20s; }
+/* ---------- Hero ---------- */
 
-@keyframes drift-blob {
-  0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(40px, -30px) scale(1.08); }
-  100% { transform: translate(-30px, 20px) scale(0.96); }
+.dark { background: var(--dark); color: var(--dark-ink); }
+
+.hero {
+  min-height: 100vh; min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 120px var(--gutter) 48px;
+  position: relative;
 }
-
-@media (prefers-reduced-motion: reduce) { .blob { animation: none; } }
-
-/* ---------- Crosshair corner decoration ---------- */
-
-.crosshair { position: relative; }
-.crosshair::before, .crosshair::after {
-  content: "+";
-  position: absolute;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; line-height: 1;
-  color: rgba(255, 255, 255, 0.22);
-  pointer-events: none;
+.hero .label { margin-bottom: 28px; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.hero h1 {
+  font-size: clamp(46px, 8.4vw, 124px);
+  line-height: 0.96;
+  font-weight: 700;
+  font-stretch: 88%;
+  letter-spacing: -0.025em;
+  max-width: 14ch;
 }
-.crosshair::before { top: -7px; left: -6px; }
-.crosshair::after { bottom: -7px; right: -6px; }
+.word { display: inline-block; opacity: 0; transform: translateY(0.55em); animation: word-in 1s var(--ease) forwards; animation-delay: calc(var(--i) * 80ms + 180ms); }
+@keyframes word-in { to { opacity: 1; transform: translateY(0); } }
 
-/* ---------- Scroll scene ---------- */
-
-.scene-track { position: relative; height: 260vh; z-index: 1; }
-
-.scene {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
-  background: radial-gradient(120% 90% at 50% 0%, #0E1C2E 0%, #0A0F1A 55%, #07080D 100%);
+.hero-foot {
+  margin-top: 48px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: end;
+  border-top: 1px solid var(--dark-line); padding-top: 28px;
+  opacity: 0; animation: fade-up 1s var(--ease) 1s forwards;
 }
+.hero-foot p { max-width: 52ch; color: var(--dark-muted); font-size: 18px; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
-.scene > svg#scene-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+@keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
-.scene-vignette {
-  position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 100%, rgba(7,8,13,0.96) 0%, rgba(7,8,13,0) 45%),
-              linear-gradient(180deg, rgba(16,185,129,0.04), rgba(6,182,212,0.03));
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; justify-content: center;
+  font-size: 15px; font-weight: 600; letter-spacing: 0.005em;
+  padding: 13px 20px; border-radius: 2px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: #FFFDF8;
+  text-decoration: none;
 }
-
-.waves { animation: drift 9s linear infinite; }
-@keyframes drift { from { transform: translateX(0); } to { transform: translateX(-80px); } }
-
-.topbar {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 3;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: var(--s2) var(--s3);
+.btn.secondary { background: transparent; color: var(--ink); border-color: var(--ink); }
+.btn.quiet { background: transparent; color: var(--ink-2); border-color: var(--line); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn:focus-visible, .tab:focus-visible, .link:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
 }
+.dark .btn.secondary { color: var(--dark-ink); border-color: var(--dark-ink); }
+.btn .icon { font-size: 17px; }
 
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
-.brand-mark {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 10px;
-  background: var(--accent-grad); color: #04140D; font-size: 17px;
-  box-shadow: 0 6px 18px var(--glow);
+/* ---------- Yard scene (pinned, scroll-driven) ---------- */
+
+.scene-track { position: relative; height: 240vh; background: var(--dark); }
+.scene { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--dark); }
+.scene > svg#scene-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scene-copy {
+  position: absolute; left: var(--gutter); bottom: 56px; z-index: 2; max-width: 520px;
+  background: var(--dark); padding: 22px 26px 24px 0;
 }
-.brand-text-a { color: var(--ink); }
-.brand-text-b {
-  background: var(--accent-grad);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
+.scene-copy h2 { font-size: clamp(30px, 4vw, 52px); line-height: 1.02; letter-spacing: -0.02em; font-weight: 700; font-stretch: 90%; margin-top: 14px; }
+.scene-copy p { margin-top: 14px; color: var(--dark-muted); max-width: 42ch; }
+.scene-index { position: absolute; right: var(--gutter); bottom: 56px; z-index: 2; text-align: right; background: var(--dark); padding: 8px 0 8px 14px; }
+.scene-index .count { font-family: var(--mono); font-size: 14px; color: var(--dark-ink); }
+
+/* ---------- Method ---------- */
+
+.section { padding: clamp(88px, 12vw, 160px) var(--gutter); }
+.section-head { max-width: 900px; }
+.section-head h2 {
+  font-size: clamp(36px, 5.4vw, 76px); line-height: 1; letter-spacing: -0.024em; font-weight: 700; font-stretch: 88%;
 }
+.section-head p { margin-top: 20px; color: var(--ink-2); max-width: 56ch; font-size: 18px; }
 
-.pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12.5px; font-weight: 500; color: var(--ink-2);
-  background: var(--glass-strong);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  padding: 7px 14px 7px 11px; border-radius: 999px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+.steps { list-style: none; margin-top: clamp(56px, 8vw, 110px); border-top: 1px solid var(--line); }
+.step {
+  display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1.1fr); gap: 32px;
+  padding: 32px 0; border-bottom: 1px solid var(--line); align-items: start;
 }
-.ping { position: relative; width: 8px; height: 8px; flex: 0 0 auto; }
-.ping::before, .ping::after {
-  content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--good);
-}
-.ping::before { animation: ping 1.8s cubic-bezier(0,0,0.2,1) infinite; opacity: 0.6; }
-@keyframes ping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+.step-num { font-family: var(--mono); font-size: 15px; color: var(--accent-ink); padding-top: 6px; }
+.step h3 { font-size: clamp(24px, 2.6vw, 34px); line-height: 1.12; letter-spacing: -0.015em; font-weight: 700; font-stretch: 92%; }
+.step p { color: var(--ink-2); max-width: 46ch; }
 
-.caption {
-  position: absolute; left: var(--s3); bottom: var(--s4); z-index: 3;
-  max-width: 480px;
-  background: var(--glass-strong);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-  border-radius: var(--radius);
-  padding: var(--s3) var(--s3);
-  box-shadow: 0 24px 60px rgba(0,0,0,0.45);
-}
+.charge-note { margin-top: 72px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
+.charge-note h3 { font-size: clamp(26px, 3vw, 40px); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; font-stretch: 90%; }
+.charge-note p { color: var(--ink-2); }
 
-.caption .kicker-row { display: flex; align-items: center; gap: 8px; }
-.caption .kicker { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; }
-.caption h1 { font-size: 28px; line-height: 1.2; letter-spacing: -0.015em; margin-top: 8px; font-weight: 800; color: var(--ink); }
-.caption p { margin-top: 8px; color: var(--ink-2); font-size: 15px; }
+/* ---------- Reveal on scroll ---------- */
 
-.cue {
-  position: absolute; right: var(--s3); bottom: var(--s4); z-index: 3;
-  display: inline-flex; align-items: center; gap: 8px;
-  color: #04140D; font-weight: 700; font-size: 15px; text-decoration: none;
-  background: var(--accent-grad);
-  border-radius: 999px; padding: 12px 20px;
-  box-shadow: 0 10px 28px var(--glow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.cue:hover { transform: translateY(-2px); box-shadow: 0 14px 34px var(--glow); }
-.cue .icon { transition: transform 0.2s ease; }
-.cue:hover .icon { transform: translateX(3px); }
-
-.progress-track { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; z-index: 3; background: rgba(255,255,255,0.06); }
-.progress { height: 100%; width: 0; background: var(--accent-grad); box-shadow: 0 0 12px var(--glow); }
-
-/* ---------- Highlights strip ---------- */
-
-.highlights {
-  position: relative; z-index: 1;
-  max-width: 1040px; margin: 0 auto; padding: var(--s4) var(--s3) 0;
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3);
-}
-
-.chip {
-  display: flex; align-items: flex-start; gap: 12px;
-  background: var(--glass);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--radius);
-  padding: var(--s3);
-  opacity: 0; transform: translateY(16px);
-  transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.chip.in-view { opacity: 1; transform: translateY(0); }
-.chip:hover { box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(16,185,129,0.15) inset; border-color: var(--border-hover); }
-
-.chip-icon {
-  flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--accent-grad-soft); color: var(--accent-ink); font-size: 19px;
-  border: 1px solid rgba(16,185,129,0.2);
-}
-.chip h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
-.chip p { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity 1s var(--ease), transform 1s var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 0.12s; }
+.reveal-delay-2 { transition-delay: 0.24s; }
+.reveal-delay-3 { transition-delay: 0.36s; }
 
 /* ---------- Tools ---------- */
 
-.tools { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: var(--s5) var(--s3) var(--s4); }
-
-.tools-head { text-align: center; max-width: 620px; margin: 0 auto var(--s4); }
-.eyebrow {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--accent-ink); background: var(--accent-grad-soft);
-  border: 1px solid rgba(16,185,129,0.2);
-  padding: 6px 14px; border-radius: 999px; margin-bottom: var(--s2);
-}
-.tools-head h2.lead { font-size: 30px; font-weight: 800; letter-spacing: -0.015em; color: var(--ink); }
-.tools-head .sub { color: var(--muted); margin-top: 10px; font-size: 15.5px; }
-
-.card {
-  background: var(--glass-strong);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-  padding: var(--s4);
-  opacity: 0; transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.card.in-view { opacity: 1; transform: translateY(0); }
-
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: var(--s3); }
-
+.tools { background: var(--paper); }
+.tool-frame { margin-top: clamp(48px, 6vw, 80px); border-top: 1px solid var(--ink); }
+.tabs { display: flex; gap: 32px; border-bottom: 1px solid var(--line); }
 .tab {
-  display: inline-flex; align-items: center; gap: 8px;
-  font: inherit; font-weight: 700; font-size: 15.5px; color: var(--muted);
-  background: none; border: 0; border-bottom: 2px solid transparent;
-  padding: 12px 14px; margin-bottom: -1px; cursor: pointer;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  transition: color 0.2s ease, background 0.2s ease;
+  background: none; border: 0; padding: 18px 0 16px; cursor: pointer;
+  font-size: 18px; font-weight: 600; color: var(--muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  display: inline-flex; align-items: center; gap: 10px;
 }
-.tab:hover { color: var(--ink-2); background: rgba(16,185,129,0.06); }
-.tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); }
-.tab[aria-selected="true"]:hover { background: none; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .icon { font-size: 19px; }
 
-button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible, .cue:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-
-.panel { padding: var(--s3) 0 0; }
+.panel { padding: 40px 0 8px; }
 .panel[hidden] { display: none; }
+.panel-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; margin-bottom: 40px; }
+.panel-intro h3 { font-size: clamp(26px, 3vw, 38px); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; font-stretch: 90%; }
+.panel-intro p { color: var(--ink-2); }
 
-h2 { font-size: 22px; letter-spacing: -0.01em; font-weight: 800; display: flex; align-items: center; gap: 10px; color: var(--ink); }
-h2 .h2-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 10px; font-size: 17px;
-  background: var(--accent-grad-soft); color: var(--accent-ink);
-  border: 1px solid rgba(16,185,129,0.2);
-}
-.lede { color: var(--ink-2); margin: var(--s1) 0 var(--s4); max-width: 620px; font-size: 15px; }
-
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
-.field { margin-bottom: var(--s3); }
-
-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.03em; }
-label .icon { color: var(--accent-ink); font-size: 14px; }
-
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.field { margin-bottom: 26px; }
+label { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
 input, select, textarea {
-  width: 100%; font: inherit; font-size: 15.5px; color: var(--ink);
-  background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  width: 100%; font-size: 16px; color: var(--ink);
+  background: #FBF9F4; border: 1px solid var(--line); border-radius: 2px; padding: 12px 14px;
 }
-input::placeholder, textarea::placeholder { color: #565E73; }
-input:hover, select:hover, textarea:hover { border-color: rgba(16,185,129,0.35); }
-input:focus, select:focus, textarea:focus {
-  outline: none; border-color: var(--accent); background: rgba(16,185,129,0.04);
-  box-shadow: 0 0 0 4px rgba(16,185,129,0.14);
-}
-select option { background: var(--surface-2); color: var(--ink); }
-
+input::placeholder, textarea::placeholder { color: #A39C8E; }
 textarea { min-height: 120px; line-height: 1.5; resize: vertical; }
-
-.check { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--ink-2); font-weight: 500; text-transform: none; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink-2); text-transform: none; font-family: var(--display); letter-spacing: 0; margin-bottom: 0; }
 .check input { width: auto; accent-color: var(--accent); }
-
-.btn {
-  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
-  font: inherit; font-size: 14.5px; font-weight: 700;
-  color: #04140D; background: var(--accent-grad); border: none;
-  border-radius: var(--radius-sm); padding: 12px 22px; cursor: pointer;
-  box-shadow: 0 10px 26px var(--glow);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-  text-transform: uppercase; letter-spacing: 0.02em;
-}
-.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px var(--glow); }
-.btn:active:not(:disabled) { transform: translateY(0); }
-
-.btn.ghost {
-  color: var(--ink-2); background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border); box-shadow: none;
-}
-.btn.ghost:hover:not(:disabled) { border-color: rgba(16,185,129,0.4); color: var(--accent-ink); background: rgba(16,185,129,0.06); box-shadow: 0 8px 22px rgba(0,0,0,0.3); }
-
-.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: var(--s2); }
-
-.status { min-height: 24px; margin-top: var(--s2); font-size: 14px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.status { min-height: 26px; margin-top: 18px; font-family: var(--mono); font-size: 14px; color: var(--ink-2); }
 .status.err { color: var(--bad); }
-.status:empty { margin-top: 0; }
+.status:empty { min-height: 0; margin-top: 0; }
 
-.out { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--border); }
+.out { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line); animation: out-in 0.7s var(--ease); }
 .out[hidden] { display: none; }
+@keyframes out-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.out-meta { margin-bottom: 16px; }
+.out .field textarea { min-height: 220px; background: #FBF9F4; }
 
-.kicker { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; margin-bottom: 10px; }
+.block { margin-top: 36px; }
+.block[hidden] { display: none; }
+.block > .label { display: block; margin-bottom: 10px; }
 
-ol.sentences { padding-left: 20px; }
-ol.sentences li { margin-bottom: 14px; color: var(--ink-2); }
-
-.cite {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
-  color: var(--accent-ink); background: rgba(16,185,129,0.12);
-  border: 1px solid rgba(16,185,129,0.2);
-  padding: 2px 7px; border-radius: 6px; margin-left: 6px; white-space: nowrap;
+ol.sentences { padding-left: 0; list-style: none; counter-reset: s; }
+ol.sentences li {
+  counter-increment: s; position: relative; padding: 14px 0 14px 52px; border-bottom: 1px solid var(--line);
+  color: var(--ink); font-size: 16px; opacity: 0; animation: line-in 0.8s var(--ease) forwards;
+  animation-delay: calc(var(--n, 0) * 90ms);
 }
+ol.sentences li::before { content: counter(s, decimal-leading-zero); position: absolute; left: 0; top: 16px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+@keyframes line-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
 
-.quote { display: block; color: var(--muted); font-size: 13.5px; margin-top: 3px; font-style: italic; }
+.cite { display: inline-block; margin-left: 10px; font-family: var(--mono); font-size: 12px; color: var(--accent-ink); white-space: nowrap; }
+.quote { display: block; margin-top: 4px; font-size: 14px; color: var(--muted); font-style: italic; }
 
 ul.plain { list-style: none; }
-ul.plain li { display: flex; align-items: flex-start; gap: 8px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14.5px; color: var(--ink-2); }
+ul.plain li { display: flex; gap: 10px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-2); }
+ul.plain li .icon { margin-top: 3px; color: var(--muted); font-size: 16px; }
+ul.plain li.bad .icon { color: var(--bad); }
 
-.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s2); margin-bottom: var(--s3); }
-.summary > div {
-  background: rgba(16,185,129,0.05); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 12px 14px;
-}
-.summary span { display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-.summary strong { font-size: 19px; font-weight: 800; color: var(--ink); }
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+.summary div { padding: 18px 16px 18px 0; }
+.summary div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.summary dt { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.summary dd { margin-top: 6px; font-size: 22px; font-weight: 700; font-stretch: 92%; letter-spacing: -0.01em; }
+.explain { color: var(--ink-2); margin-bottom: 28px; max-width: 70ch; }
 
-.explain { color: var(--ink-2); margin-bottom: var(--s3); font-size: 15px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 12px 12px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
+th { font-family: var(--mono); font-size: 12px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border-bottom-color: var(--ink); }
+td:first-child, th:first-child { font-family: var(--mono); font-size: 13px; color: var(--ink); }
 
-.table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; color: var(--ink-2); }
-th { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: rgba(255,255,255,0.03); }
-tbody tr:hover { background: rgba(16,185,129,0.04); }
-tbody tr:last-child td { border-bottom: none; }
+/* ---------- Method and trust ---------- */
 
-.foot {
-  position: relative; z-index: 1;
-  max-width: 960px; margin: 0 auto; padding: var(--s3);
-  display: flex; align-items: center; gap: 10px;
-  border-top: 1px solid var(--border); color: var(--muted); font-size: 13px;
-}
-.foot .icon { color: var(--accent-ink); font-size: 16px; flex: 0 0 auto; }
+.trust { background: var(--dark); color: var(--dark-ink); }
+.trust-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; }
+.trust h2 { font-size: clamp(34px, 4.6vw, 64px); line-height: 1; letter-spacing: -0.024em; font-weight: 700; font-stretch: 88%; }
+.trust-list { border-top: 1px solid var(--dark-line); }
+.trust-list div { padding: 22px 0; border-bottom: 1px solid var(--dark-line); }
+.trust-list h3 { font-size: 20px; font-weight: 600; }
+.trust-list p { margin-top: 6px; color: var(--dark-muted); font-size: 16px; }
+
+/* ---------- Footer ---------- */
+
+.foot { background: var(--dark); color: var(--dark-muted); padding: 40px var(--gutter) 48px; border-top: 1px solid var(--dark-line); }
+.foot-inner { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; align-items: flex-end; }
+.foot p { max-width: 62ch; font-size: 14px; }
+.foot nav { display: flex; gap: 24px; font-size: 14px; }
+.foot a { color: var(--dark-ink); }
 
 /* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
-  .highlights { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .hero-foot { grid-template-columns: 1fr; }
+  .step { grid-template-columns: 56px minmax(0, 1fr); }
+  .step p { grid-column: 2; }
+  .charge-note, .panel-intro, .trust-grid { grid-template-columns: 1fr; gap: 24px; }
+  .grid { grid-template-columns: 1fr; }
+  .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary div:nth-child(3) { padding-left: 0; border-left: 0; }
+  .summary div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .scene-index { display: none; }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .tabs { gap: 20px; }
+  .tab { font-size: 16px; }
+  .scene-copy { bottom: 28px; left: 20px; right: 20px; }
 }
 
-@media (max-width: 720px) {
-  .grid { grid-template-columns: 1fr; }
-  .caption { left: 12px; right: 12px; bottom: 12px; max-width: none; padding: var(--s2); }
-  .caption h1 { font-size: 22px; }
-  .caption p { font-size: 14px; }
-  .cue { display: none; }
-  .tools { padding: var(--s4) var(--s2) var(--s3); }
-  .topbar { padding: var(--s2); }
-  .tabs { gap: 2px; }
-  .card { padding: var(--s3); border-radius: 16px; }
-  .tools-head h2.lead { font-size: 24px; }
-}
+/* ---------- Reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .waves { animation: none; }
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .word, .hero-foot, ol.sentences li { opacity: 1; transform: none; }
+  .reveal { opacity: 1; transform: none; }
   .scene-track { height: 100vh; }
-  .chip, .card { transition: none; opacity: 1; transform: none; }
-  .ping::before { animation: none; }
 }
 </style>
 </head>
@@ -414,215 +309,231 @@ tbody tr:last-child td { border-bottom: none; }
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <defs>
-<symbol id="icon-ship" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="1.5"/><line x1="9" y1="7" x2="9" y2="17"/><line x1="15" y1="7" x2="15" y2="17"/><line x1="3" y1="20" x2="21" y2="20"/></symbol>
-<symbol id="icon-location" viewBox="0 0 24 24"><path d="M12 21s7-7.58 7-12a7 7 0 1 0-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
-<symbol id="icon-arrow-right" viewBox="0 0 24 24"><line x1="4" y1="12" x2="19" y2="12"/><path d="M13 6l6 6-6 6"/></symbol>
-<symbol id="icon-shield-check" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
-<symbol id="icon-invoice" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></symbol>
-<symbol id="icon-user-check" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c0-3.5 2.5-6 5.5-6s5.5 2.5 5.5 6"/><path d="M16 13l1.5 1.5L21 11"/></symbol>
-<symbol id="icon-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.3 4.2L17.5 8.5l-4.2 1.3L12 14l-1.3-4.2L6.5 8.5l4.2-1.3z"/><path d="M19 15l.6 1.9 1.9.6-1.9.6L19 20l-.6-1.9-1.9-.6 1.9-.6z"/></symbol>
-<symbol id="icon-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/></symbol>
-<symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 7l9 6 9-6"/></symbol>
-<symbol id="icon-package" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><line x1="12" y1="11" x2="12" y2="21"/></symbol>
-<symbol id="icon-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.3.9-1.3 1.9"/><line x1="12" y1="17" x2="12" y2="17.1"/></symbol>
-<symbol id="icon-message-question" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.6.3-1 .6-1 1.3"/><line x1="11.6" y1="14.5" x2="11.6" y2="14.6"/></symbol>
-<symbol id="icon-send" viewBox="0 0 24 24"><path d="M4 11l16-7-6 16-3-6-7-3z"/></symbol>
-<symbol id="icon-tick" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></symbol>
-<symbol id="icon-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></symbol>
-<symbol id="icon-cancel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></symbol>
-<symbol id="icon-cloud-download" viewBox="0 0 24 24"><path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17.3 9.5 4 4 0 0 1 17 18H7z"/><path d="M12 10v7"/><path d="M9.5 14.5L12 17l2.5-2.5"/></symbol>
-<symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="21" y2="21"/></symbol>
-<symbol id="icon-quote" viewBox="0 0 24 24"><path d="M7 7a2.5 2.5 0 0 0-2.5 2.5V12A2.5 2.5 0 0 0 7 14.5"/><path d="M15 7a2.5 2.5 0 0 0-2.5 2.5V12a2.5 2.5 0 0 0 2.5 2.5"/></symbol>
-<symbol id="icon-attachment" viewBox="0 0 24 24"><path d="M7 13.5l7.5-7.5a3 3 0 1 1 4.2 4.2L10 19a5 5 0 1 1-7-7l8-8"/></symbol>
-<symbol id="icon-note" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></symbol>
-<symbol id="icon-file-search" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><circle cx="11" cy="14" r="2.5"/><line x1="13" y1="16" x2="15" y2="18"/></symbol>
-<symbol id="icon-tag" viewBox="0 0 24 24"><path d="M3 12.5V5a1 1 0 0 1 1-1h7.5L21 12.5 12.5 21 3 12.5z"/><circle cx="8" cy="8" r="1.3"/></symbol>
-<symbol id="icon-file" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9.5" y1="12" x2="14.5" y2="12"/><line x1="9.5" y1="15.5" x2="14.5" y2="15.5"/></symbol>
-<symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-ship" viewBox="0 0 24 24"><path d="M1.99219 21.5C3.49219 21.5 4.54253 20.5 5.49219 20.5C6.44186 20.5 7.65025 21.5113 8.49219 21.5C9.50251 21.5085 10.8526 20.5 11.9922 20.5C13.1318 20.5 14.4819 21.5085 15.4922 21.5C16.3341 21.5113 17.5425 20.5 18.4922 20.5C19.4418 20.5 20.4922 21.5 21.9922 21.5" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M5.49217 20.4999L4.51927 18.3595C3.79459 16.7653 3.43226 15.9681 3.67706 15.2258C3.92186 14.4834 4.68729 14.0582 6.21816 13.2077L10.0496 11.0791C10.9991 10.5516 11.4739 10.2878 11.9922 10.2878C12.5104 10.2878 12.9852 10.5516 13.9347 11.0791L17.7662 13.2077C19.297 14.0582 20.0625 14.4834 20.3073 15.2258C20.5521 15.9681 20.1897 16.7653 19.4651 18.3595L18.4922 20.4999" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M5.99219 13.2639V11.2361C5.99219 10.0333 5.99219 9.43184 6.29089 8.94854C6.58958 8.46523 7.1275 8.19628 8.20333 7.65836L10.2033 6.65836C11.0811 6.21945 11.5201 6 11.9922 6C12.4643 6 12.9032 6.21945 13.781 6.65836L15.781 7.65836C16.8569 8.19628 17.3948 8.46523 17.6935 8.94854C17.9922 9.43184 17.9922 10.0333 17.9922 11.2361V13.2639" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M9.99219 6.5V4.5C9.99219 4.03501 9.99219 3.80252 10.0433 3.61177C10.182 3.09413 10.5863 2.68981 11.104 2.55111C11.2947 2.5 11.5272 2.5 11.9922 2.5C12.4572 2.5 12.6897 2.5 12.8804 2.55111C13.3981 2.68981 13.8024 3.09413 13.9411 3.61177C13.9922 3.80252 13.9922 4.03501 13.9922 4.5V6.5" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-invoice" viewBox="0 0 24 24"><path d="M20.016 2C18.9026 2 18 4.68629 18 8H20.016C20.9876 8 21.4734 8 21.7741 7.66455C22.0749 7.32909 22.0225 6.88733 21.9178 6.00381C21.6414 3.67143 20.8943 2 20.016 2Z" stroke-width="1.5"/><path d="M18 8.05426V18.6458C18 20.1575 18 20.9133 17.538 21.2108C16.7831 21.6971 15.6161 20.6774 15.0291 20.3073C14.5441 20.0014 14.3017 19.8485 14.0325 19.8397C13.7417 19.8301 13.4949 19.9768 12.9709 20.3073L11.06 21.5124C10.5445 21.8374 10.2868 22 10 22C9.71321 22 9.45546 21.8374 8.94 21.5124L7.02913 20.3073C6.54415 20.0014 6.30166 19.8485 6.03253 19.8397C5.74172 19.8301 5.49493 19.9768 4.97087 20.3073C4.38395 20.6774 3.21687 21.6971 2.46195 21.2108C2 20.9133 2 20.1575 2 18.6458V8.05426C2 5.20025 2 3.77325 2.87868 2.88663C3.75736 2 5.17157 2 8 2H20" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M10 8C8.89543 8 8 8.67157 8 9.5C8 10.3284 8.89543 11 10 11C11.1046 11 12 11.6716 12 12.5C12 13.3284 11.1046 14 10 14M10 8C10.8708 8 11.6116 8.4174 11.8862 9M10 8V7M10 14C9.12919 14 8.38836 13.5826 8.1138 13M10 14V15" stroke-linecap="round" stroke-width="1.5"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><path d="M2 6L8.91302 9.91697C11.4616 11.361 12.5384 11.361 15.087 9.91697L22 6" stroke-linejoin="round" stroke-width="1.5"/><path d="M2.01577 13.4756C2.08114 16.5412 2.11383 18.0739 3.24496 19.2094C4.37608 20.3448 5.95033 20.3843 9.09883 20.4634C11.0393 20.5122 12.9607 20.5122 14.9012 20.4634C18.0497 20.3843 19.6239 20.3448 20.7551 19.2094C21.8862 18.0739 21.9189 16.5412 21.9842 13.4756C22.0053 12.4899 22.0053 11.5101 21.9842 10.5244C21.9189 7.45886 21.8862 5.92609 20.7551 4.79066C19.6239 3.65523 18.0497 3.61568 14.9012 3.53657C12.9607 3.48781 11.0393 3.48781 9.09882 3.53656C5.95033 3.61566 4.37608 3.65521 3.24495 4.79065C2.11382 5.92608 2.08114 7.45885 2.01576 10.5244C1.99474 11.5101 1.99475 12.4899 2.01577 13.4756Z" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><path d="M17 17L21 21" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19C15.4183 19 19 15.4183 19 11Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-tick" viewBox="0 0 24 24"><path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke-width="1.5"/><path d="M8 12.75C8 12.75 9.6 13.6625 10.4 15C10.4 15 12.8 9.75 16 8" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-cancel" viewBox="0 0 24 24"><path d="M18 6L6.00081 17.9992M17.9992 18L6 6.00085" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><path d="M7.5 14.5C7.5 11.2002 7.5 9.55025 8.52513 8.52513C9.55025 7.5 11.2002 7.5 14.5 7.5C17.7998 7.5 19.4497 7.5 20.4749 8.52513C21.5 9.55025 21.5 11.2002 21.5 14.5C21.5 17.7998 21.5 19.4497 20.4749 20.4749C19.4497 21.5 17.7998 21.5 14.5 21.5C11.2002 21.5 9.55025 21.5 8.52513 20.4749C7.5 19.4497 7.5 17.7998 7.5 14.5Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M7.5 16.5C6.10355 16.5 5.40533 16.5 4.84402 16.3036C3.83866 15.9518 3.0482 15.1613 2.69641 14.156C2.5 13.5947 2.5 12.8964 2.5 11.5V9.5C2.5 6.20017 2.5 4.55025 3.52513 3.52513C4.55025 2.5 6.20017 2.5 9.5 2.5H11.5C12.8964 2.5 13.5947 2.5 14.156 2.69641C15.1613 3.0482 15.9518 3.83866 16.3036 4.84402C16.5 5.40533 16.5 6.10355 16.5 7.5" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M21.0477 3.05293C18.8697 0.707363 2.48648 6.4532 2.50001 8.551C2.51535 10.9299 8.89809 11.6617 10.6672 12.1581C11.7311 12.4565 12.016 12.7625 12.2613 13.8781C13.3723 18.9305 13.9301 21.4435 15.2014 21.4996C17.2278 21.5892 23.1733 5.342 21.0477 3.05293Z" stroke-width="1.5"/><path d="M11.4999 12.5L14.9999 9" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M17.4776 9.01106C17.485 9.01102 17.4925 9.01101 17.5 9.01101C19.9853 9.01101 22 11.0294 22 13.5193C22 15.8398 20.25 17.7508 18 18M17.4776 9.01106C17.4924 8.84606 17.5 8.67896 17.5 8.51009C17.5 5.46695 15.0376 3 12 3C9.12324 3 6.76233 5.21267 6.52042 8.03192M17.4776 9.01106C17.3753 10.1476 16.9286 11.1846 16.2428 12.0165M6.52042 8.03192C3.98398 8.27373 2 10.4139 2 13.0183C2 15.4417 3.71776 17.4632 6 17.9273M6.52042 8.03192C6.67826 8.01687 6.83823 8.00917 7 8.00917C8.12582 8.00917 9.16474 8.38194 10.0005 9.01101" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M12 21L12 13M12 21C11.2998 21 9.99153 19.0057 9.5 18.5M12 21C12.7002 21 14.0085 19.0057 14.5 18.5" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-attach" viewBox="0 0 24 24"><path d="M5.82338 12L4.27922 10.4558C2.57359 8.75022 2.57359 5.98485 4.27922 4.27922C5.98485 2.57359 8.75022 2.57359 10.4558 4.27922L19.7208 13.5442C21.4264 15.2498 21.4264 18.0152 19.7208 19.7208C18.0152 21.4264 15.2498 21.4264 13.5442 19.7208L10.0698 16.2464C9.00379 15.1804 9.00379 13.4521 10.0698 12.386C11.1358 11.32 12.8642 11.32 13.9302 12.386L15.8604 14.3162" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M12 16V12" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M12.125 8.25H12M12.25 8.25C12.25 8.11193 12.1381 8 12 8C11.8619 8 11.75 8.11193 11.75 8.25C11.75 8.38807 11.8619 8.5 12 8.5C12.1381 8.5 12.25 8.38807 12.25 8.25Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
+<symbol id="i-filesearch" viewBox="0 0 24 24"><path d="M13.5 16.5L15 18M14 14.5C14 15.8807 12.8807 17 11.5 17C10.1193 17 9 15.8807 9 14.5C9 13.1193 10.1193 12 11.5 12C12.8807 12 14 13.1193 14 14.5Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M13 2.5V3C13 5.82843 13 7.24264 13.8787 8.12132C14.7574 9 16.1716 9 19 9H19.5M20 10.6569V14C20 17.7712 20 19.6569 18.8284 20.8284C17.6569 22 15.7712 22 12 22C8.22876 22 6.34315 22 5.17157 20.8284C4 19.6569 4 17.7712 4 14V9.45584C4 6.21082 4 4.58831 4.88607 3.48933C5.06508 3.26731 5.26731 3.06508 5.48933 2.88607C6.58831 2 8.21082 2 11.4558 2C12.1614 2 12.5141 2 12.8372 2.11401C12.9044 2.13772 12.9702 2.165 13.0345 2.19575C13.3436 2.34355 13.593 2.593 14.0919 3.09188L18.8284 7.82843C19.4065 8.40649 19.6955 8.69552 19.8478 9.06306C20 9.4306 20 9.83935 20 10.6569Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
 </defs>
 </svg>
 
-<div class="ambient" aria-hidden="true">
-  <div class="grid-decor"></div>
-  <div class="blob b1"></div>
-  <div class="blob b2"></div>
-  <div class="blob b3"></div>
-  <div class="blob b4"></div>
-</div>
+<div class="progress" id="progress" aria-hidden="true"></div>
 
-<div class="scene-track" id="track">
-  <div class="scene" id="scene">
-    <svg id="scene-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Aerial view of a container port that zooms into stacked containers as you scroll">
-      <g id="world"></g>
-    </svg>
-    <div class="scene-vignette" aria-hidden="true"></div>
+<header class="nav">
+  <a class="wordmark" href="#top"><svg class="icon" aria-hidden="true"><use href="#i-ship"/></svg>Customs Copilot</a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="#yard">Yard</a>
+    <a href="#method">Method</a>
+    <a href="#tools">Tools</a>
+    <a href="#trust">Limits</a>
+  </nav>
+  <a class="btn-line" href="#tools">Open tools</a>
+</header>
 
-    <div class="topbar">
-      <div class="brand">
-        <span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-ship"/></svg></span>
-        <span><span class="brand-text-a">Customs</span><span class="brand-text-b">Copilot</span></span>
-      </div>
-      <div class="pill" id="status" role="status"><span class="ping" aria-hidden="true"></span>Checking service</div>
-    </div>
-
-    <div class="caption" aria-live="polite">
-      <div class="kicker-row">
-        <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" style="color: var(--accent-ink); font-size: 13px;"><use href="#icon-location"/></svg>
-        <div class="kicker" id="phase-kicker">Port overview</div>
-      </div>
-      <h1 id="phase-title">Container port from above</h1>
-      <p id="phase-text">Scroll to move closer to the yard.</p>
-    </div>
-
-    <a class="cue" href="#tools">Go to tools <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-arrow-right"/></svg></a>
-    <div class="progress-track"><div class="progress" id="progress"></div></div>
-  </div>
-</div>
-
-<section class="highlights" aria-label="Why Customs Copilot">
-  <div class="chip crosshair">
-    <span class="chip-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-shield-check"/></svg></span>
-    <div>
-      <h3>Every sentence cited</h3>
-      <p>Drafts quote the exact shipment document line they rely on, or they're rejected before you see them.</p>
-    </div>
-  </div>
-  <div class="chip crosshair">
-    <span class="chip-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-invoice"/></svg></span>
-    <div>
-      <h3>Tariff-verified charges</h3>
-      <p>Port and CFS invoices are checked line-by-line against the published tariff card, with the disagreeing line shown.</p>
-    </div>
-  </div>
-  <div class="chip crosshair">
-    <span class="chip-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-user-check"/></svg></span>
-    <div>
-      <h3>You approve, you send</h3>
-      <p>Nothing leaves this screen automatically. A licensed professional reviews and approves every draft.</p>
+<section class="dark hero" id="top">
+  <p class="label hero-top"><span>Customs brokerage drafting and charge checks</span><span id="status" role="status">Checking service</span></p>
+  <h1>
+    <span class="word" style="--i:0">Customs</span>
+    <span class="word" style="--i:1">replies</span>
+    <span class="word" style="--i:2">with</span>
+    <span class="word" style="--i:3">a</span>
+    <span class="word" style="--i:4">source</span>
+    <span class="word" style="--i:5">for</span>
+    <span class="word" style="--i:6">every</span>
+    <span class="word" style="--i:7">sentence.</span>
+  </h1>
+  <div class="hero-foot">
+    <p>Draft answers to officer questions from the shipment's own documents. Check port and CFS invoices against the published tariff card. Nothing is copied until you approve it.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#tools"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>Draft a reply</a>
+      <a class="btn secondary" href="#tools" data-tab="charges"><svg class="icon" aria-hidden="true"><use href="#i-invoice"/></svg>Check an invoice</a>
     </div>
   </div>
 </section>
 
-<main class="tools" id="tools">
-  <div class="tools-head">
-    <span class="eyebrow"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-sparkles"/></svg> Clearance tools</span>
-    <h2 class="lead">Draft replies and check charges, with receipts</h2>
-    <p class="sub">Two focused tools on one stateless service. Synthetic data only — nothing here is a real shipment.</p>
+<section class="dark scene-track" id="yard">
+  <div class="scene" id="scene">
+    <svg id="scene-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Aerial view of a container yard that opens into stacked containers as you scroll">
+      <g id="world"></g>
+    </svg>
+    <div class="scene-copy" aria-live="polite">
+      <p class="label" id="phase-kicker">Port overview</p>
+      <h2 id="phase-title">Container port from above</h2>
+      <p id="phase-text">Scroll to move closer to the yard.</p>
+    </div>
+    <div class="scene-index" aria-hidden="true">
+      <span class="count" id="phase-count">01 / 03</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="method">
+  <div class="section-head reveal">
+    <p class="label">Method</p>
+    <h2 style="margin-top:14px">Each sentence in a draft has to point at a line in the file.</h2>
+    <p>The drafter reads only the documents attached to the chosen shipment. A sentence that cannot be matched to a line is rejected and listed, so you can see what is missing.</p>
+  </div>
+  <ol class="steps" aria-label="How a draft is checked">
+    <li class="step reveal">
+      <span class="step-num">01</span>
+      <h3>Pick the shipment and the question.</h3>
+      <p>Each shipment carries its own set of documents, such as the invoice, bill of lading, packing list and certificate of origin.</p>
+    </li>
+    <li class="step reveal">
+      <span class="step-num">02</span>
+      <h3>Every sentence is tied to a document line.</h3>
+      <p>The quoted text must appear exactly on the cited line. Numbers and codes are compared as well.</p>
+    </li>
+    <li class="step reveal">
+      <span class="step-num">03</span>
+      <h3>Unsupported sentences are rejected, not guessed.</h3>
+      <p>Rejected sentences and the documents still needed appear beneath the draft with the reason given.</p>
+    </li>
+    <li class="step reveal">
+      <span class="step-num">04</span>
+      <h3>You approve before anything is copied.</h3>
+      <p>Editing the draft clears the approval. Copying is the only action the tool takes, and it sends nothing.</p>
+    </li>
+  </ol>
+  <div class="charge-note">
+    <div class="reveal">
+      <p class="label">Charge check</p>
+      <h3 style="margin-top:14px">Each billed line is compared with the tariff card.</h3>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <p>Storage days are recounted from gate in and gate out, less the free days on the card. Container size selects the rate and the slab. Each flag shows the tariff line it disagrees with and the overcharge before GST.</p>
+    </div>
+  </div>
+</section>
+
+<main class="tools section" id="tools">
+  <div class="section-head reveal">
+    <p class="label">Tools</p>
+    <h2 style="margin-top:14px">Run both tools on the sample data.</h2>
+    <p>These tools call the live API. The shipments, questions and invoices are synthetic.</p>
   </div>
 
-  <div class="card crosshair">
+  <div class="tool-frame reveal">
     <div class="tabs" role="tablist" aria-label="Tools">
-      <button class="tab" role="tab" id="tab-query" aria-controls="panel-query" aria-selected="true">
-        <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-chat"/></svg> Query reply
-      </button>
-      <button class="tab" role="tab" id="tab-charges" aria-controls="panel-charges" aria-selected="false" tabindex="-1">
-        <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-invoice"/></svg> Charge check
-      </button>
+      <button class="tab" role="tab" id="tab-query" aria-controls="panel-query" aria-selected="true"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>Query reply</button>
+      <button class="tab" role="tab" id="tab-charges" aria-controls="panel-charges" aria-selected="false" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="#i-invoice"/></svg>Charge check</button>
     </div>
 
     <section class="panel" id="panel-query" role="tabpanel" aria-labelledby="tab-query">
-      <h2><span class="h2-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-mail"/></svg></span>Draft a reply to a customs query</h2>
-      <p class="lede">Choose a shipment and a question. Every sentence in the draft is checked against that shipment's documents. Nothing is sent; you approve before copying.</p>
+      <div class="panel-intro">
+        <h3>Draft a reply to an officer's question.</h3>
+        <p>Choose a shipment and a question. Every sentence in the result cites the document line it relies on. The draft is not sent anywhere.</p>
+      </div>
 
       <div class="grid">
         <div class="field">
-          <label for="shipment"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-package"/></svg>Shipment</label>
+          <label for="shipment">Shipment</label>
           <select id="shipment"></select>
         </div>
         <div class="field">
-          <label for="sample-q"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-help-circle"/></svg>Sample question</label>
+          <label for="sample-q">Sample question</label>
           <select id="sample-q"></select>
         </div>
       </div>
 
       <div class="field">
-        <label for="question"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-message-question"/></svg>Officer question</label>
+        <label for="question">Officer question</label>
         <textarea id="question" maxlength="2000" placeholder="Type the officer's question"></textarea>
       </div>
 
       <label class="check" id="llm-row" hidden>
-        <input type="checkbox" id="use-llm"> Use AI drafting (verified before it reaches you)
+        <input type="checkbox" id="use-llm"> Use AI drafting. The draft is verified before it reaches you.
       </label>
 
-      <div class="row">
-        <button class="btn" id="draft-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-send"/></svg>Draft reply</button>
+      <div class="row" style="margin-top:20px">
+        <button class="btn" id="draft-btn"><svg class="icon" aria-hidden="true"><use href="#i-send"/></svg>Draft reply</button>
       </div>
       <div class="status" id="query-status" role="status"></div>
 
       <div class="out" id="draft-out" hidden>
-        <div class="kicker" id="draft-meta"></div>
+        <p class="label out-meta" id="draft-meta"></p>
+
         <div class="field">
           <label for="draft-text">Draft</label>
           <textarea id="draft-text"></textarea>
         </div>
 
-        <div id="sentences-wrap" hidden>
-          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-quote"/></svg>Cited sentences</div>
+        <div class="block" id="sentences-wrap" hidden>
+          <span class="label">Cited sentences</span>
           <ol class="sentences" id="sentences"></ol>
         </div>
 
-        <div id="missing-wrap" hidden>
-          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-attachment"/></svg>Documents to attach</div>
+        <div class="block" id="missing-wrap" hidden>
+          <span class="label">Documents to attach</span>
           <ul class="plain" id="missing"></ul>
         </div>
 
-        <div id="notes-wrap" hidden>
-          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-note"/></svg>Notes</div>
+        <div class="block" id="notes-wrap" hidden>
+          <span class="label">Notes</span>
           <ul class="plain" id="notes"></ul>
         </div>
 
-        <div id="rejected-wrap" hidden>
-          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-cancel"/></svg>Rejected by the verifier</div>
+        <div class="block" id="rejected-wrap" hidden>
+          <span class="label">Rejected by the verifier</span>
           <ul class="plain" id="rejected"></ul>
         </div>
 
-        <div id="evidence-wrap" hidden>
-          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-file-search"/></svg>Evidence lines</div>
+        <div class="block" id="evidence-wrap" hidden>
+          <span class="label">Evidence lines</span>
           <ul class="plain" id="evidence"></ul>
         </div>
 
-        <div class="row">
-          <button class="btn" id="approve-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-tick"/></svg>Approve draft</button>
-          <button class="btn ghost" id="copy-btn" disabled><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-copy"/></svg>Copy</button>
-          <button class="btn ghost" id="reject-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-cancel"/></svg>Reject</button>
+        <div class="row" style="margin-top:32px">
+          <button class="btn" id="approve-btn"><svg class="icon" aria-hidden="true"><use href="#i-tick"/></svg>Approve draft</button>
+          <button class="btn quiet" id="copy-btn" disabled><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg>Copy</button>
+          <button class="btn quiet" id="reject-btn"><svg class="icon" aria-hidden="true"><use href="#i-cancel"/></svg>Reject</button>
         </div>
         <div class="status" id="approve-status" role="status"></div>
       </div>
     </section>
 
     <section class="panel" id="panel-charges" role="tabpanel" aria-labelledby="tab-charges" hidden>
-      <h2><span class="h2-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-invoice"/></svg></span>Check a port or CFS invoice</h2>
-      <p class="lede">Paste the invoice text. Each charge is compared with the published tariff card, and every flag shows the tariff line it disagrees with.</p>
+      <div class="panel-intro">
+        <h3>Check a port or CFS invoice against its tariff card.</h3>
+        <p>Paste the invoice text, or load a sample. Each charge is compared with the card, and each flag names the tariff line it was measured against.</p>
+      </div>
 
       <div class="grid">
         <div class="field">
-          <label for="tariff-id"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-tag"/></svg>Tariff card (optional)</label>
+          <label for="tariff-id">Tariff card (optional)</label>
           <input type="text" id="tariff-id" placeholder="Leave blank to choose by terminal">
         </div>
         <div class="field" style="align-self: end;">
-          <button class="btn ghost" id="load-sample-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-cloud-download"/></svg>Load sample invoice</button>
+          <button class="btn quiet" id="load-sample-btn"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Load sample invoice</button>
         </div>
       </div>
 
       <div class="field">
-        <label for="invoice-text"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-file"/></svg>Invoice text</label>
-        <textarea id="invoice-text" maxlength="20000" style="min-height: 180px;" placeholder="TERMINAL: ...&#10;INVOICE NO: ..."></textarea>
+        <label for="invoice-text">Invoice text</label>
+        <textarea id="invoice-text" maxlength="20000" style="min-height: 200px;" placeholder="TERMINAL: ...&#10;INVOICE NO: ..."></textarea>
       </div>
 
-      <div class="row">
-        <button class="btn" id="check-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-search"/></svg>Check invoice</button>
+      <div class="row" style="margin-top:20px">
+        <button class="btn" id="check-btn"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>Check invoice</button>
       </div>
       <div class="status" id="charge-status" role="status"></div>
 
       <div class="out" id="charge-out" hidden>
-        <div class="summary">
-          <div><span>Terminal</span><strong id="sum-terminal"></strong></div>
-          <div><span>Dwell days</span><strong id="sum-dwell"></strong></div>
-          <div><span>Read with</span><strong id="sum-read"></strong></div>
-          <div><span>Overcharge before GST</span><strong id="sum-over"></strong></div>
-        </div>
+        <dl class="summary">
+          <div><dt>Terminal</dt><dd id="sum-terminal"></dd></div>
+          <div><dt>Dwell days</dt><dd id="sum-dwell"></dd></div>
+          <div><dt>Read with</dt><dd id="sum-read"></dd></div>
+          <div><dt>Overcharge before GST</dt><dd id="sum-over"></dd></div>
+        </dl>
         <p class="explain" id="charge-explain"></p>
-        <div class="table-wrap" id="flags-wrap">
+        <div class="table-wrap">
           <table>
             <thead>
               <tr><th>Check</th><th>Line</th><th>Issue</th><th>Tariff line</th><th>Billed</th><th>Expected</th><th>Over</th></tr>
@@ -635,27 +546,86 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </main>
 
+<section class="trust section" id="trust">
+  <div class="trust-grid">
+    <div class="reveal">
+      <p class="label">Limits</p>
+      <h2 style="margin-top:14px">What this tool does not do.</h2>
+    </div>
+    <div class="trust-list reveal reveal-delay-1">
+      <div>
+        <h3>It does not file anything.</h3>
+        <p>Drafts and checks are for a licensed professional to review. Nothing reaches an agency or a terminal from this page.</p>
+      </div>
+      <div>
+        <h3>It reads the sample layout only.</h3>
+        <p>The invoice reader handles the layout in the sample data. Real invoices in other layouts are refused rather than guessed.</p>
+      </div>
+      <div>
+        <h3>The data is synthetic.</h3>
+        <p>Shipments, questions, tariff cards and invoices are made up for demonstration. Do not enter real customer or shipment data unless the terms say it is allowed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer class="foot">
-  <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-info"/></svg>
-  Drafts and checks only. A licensed professional remains responsible for anything filed. Sample data is synthetic.
+  <div class="foot-inner">
+    <p>Drafts and checks only. A licensed professional remains responsible for anything filed. Sample data is synthetic.</p>
+    <nav aria-label="Legal">
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </div>
 </footer>
 
 <script>
 (function () {
   "use strict";
 
-  /* ---------- Scene: aerial port that zooms into containers ---------- */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- Scroll progress ---------- */
+
+  var progressBar = $("progress");
+  function updateProgress() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var p = max > 0 ? window.scrollY / max : 0;
+    progressBar.style.transform = "scaleX(" + p.toFixed(4) + ")";
+  }
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+
+  /* ---------- Reveal on scroll ---------- */
+
+  var revealEls = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* ---------- Yard scene (scroll-driven) ---------- */
 
   var NS = "http://www.w3.org/2000/svg";
   var VB_W = 1200, VB_H = 700;
   var CX = VB_W / 2, CY = VB_H / 2;
-  var COLORS = ["#10B981", "#06B6D4", "#34D399", "#1E293B", "#64748B"];
-  var world = document.getElementById("world");
-  var track = document.getElementById("track");
-  var progress = document.getElementById("progress");
-  var kicker = document.getElementById("phase-kicker");
-  var title = document.getElementById("phase-title");
-  var text = document.getElementById("phase-text");
+  var PALETTE = ["#C8582A", "#8C8476", "#D9D2C3", "#5A554A", "#3A3731"];
+  var world = $("world");
+  var track = $("yard");
+  var kicker = $("phase-kicker");
+  var title = $("phase-title");
+  var text = $("phase-text");
+  var count = $("phase-count");
 
   function make(tag, attrs, parent) {
     var e = document.createElementNS(NS, tag);
@@ -663,33 +633,17 @@ tbody tr:last-child td { border-bottom: none; }
     parent.appendChild(e);
     return e;
   }
-
   function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
   function smooth(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
   function easeInOut(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
 
-  var gSea = make("g", {}, world);
-  make("rect", { x: 0, y: 0, width: VB_W, height: VB_H, fill: "#0B1424" }, gSea);
-  var waves = make("g", { class: "waves" }, gSea);
-  for (var w = 0; w < 14; w++) {
-    var wy = 30 + w * 48, d = "";
-    for (var x = -80; x <= 340; x += 40) {
-      d += (x === -80 ? "M" : "L") + x + " " + (wy + ((x / 40) % 2 ? 6 : 0)) + " ";
-    }
-    make("path", { d: d, fill: "none", stroke: "#1B3A4A", "stroke-opacity": "0.9", "stroke-width": "2" }, waves);
-  }
-
-  make("path", { d: "M40 470 L250 470 L226 512 L64 512 Z", fill: "#11182A" }, world);
-  for (var s = 0; s < 6; s++) {
-    make("rect", { x: 62 + s * 28, y: 448, width: 24, height: 20, rx: 1, fill: COLORS[s % COLORS.length] }, world);
-  }
-
-  make("rect", { x: 300, y: 0, width: 28, height: VB_H, fill: "#1A2338" }, world);
-  make("rect", { x: 328, y: 0, width: VB_W - 328, height: VB_H, fill: "#0D1526" }, world);
+  make("rect", { x: 0, y: 0, width: VB_W, height: VB_H, fill: "#12110F" }, world);
 
   for (var c = 0; c < 4; c++) {
-    make("rect", { x: 300, y: 110 + c * 140, width: 44, height: 22, rx: 2, fill: "#05070C", "fill-opacity": "0.9" }, world);
+    make("rect", { x: 300, y: 110 + c * 140, width: 44, height: 22, rx: 0, fill: "#2A2823" }, world);
   }
+  make("rect", { x: 300, y: 0, width: 28, height: VB_H, fill: "#24221E" }, world);
+  make("rect", { x: 328, y: 0, width: VB_W - 328, height: VB_H, fill: "#171613" }, world);
 
   var BW = 84, BH = 72, GX = 18, GY = 16, COLS = 8, ROWS = 5;
   var X0 = 351, Y0 = 168;
@@ -704,14 +658,14 @@ tbody tr:last-child td { border-bottom: none; }
     for (var col = 0; col < COLS; col++) {
       var bx = X0 + (BW + GX) * col, by = Y0 + (BH + GY) * r;
       var g = make("g", {}, gYard);
-      var base = make("rect", { x: bx, y: by, width: BW, height: BH, rx: 2, fill: "#1B2740" }, g);
+      var base = make("rect", { x: bx, y: by, width: BW, height: BH, rx: 0, fill: "#25231F" }, g);
       var cg = make("g", {}, g);
       var cons = [];
       for (var k = 0; k < 6; k++) {
         var px = bx + 3 + (k % 3) * 27, py = by + 8.5 + Math.floor(k / 3) * 29;
         var rect = make("rect", {
-          x: px, y: py, width: 24, height: 26, rx: 1,
-          fill: COLORS[(col + r + k) % COLORS.length]
+          x: px, y: py, width: 24, height: 26, rx: 0,
+          fill: PALETTE[(col + r + k) % PALETTE.length]
         }, cg);
         cons.push(rect);
       }
@@ -724,11 +678,11 @@ tbody tr:last-child td { border-bottom: none; }
   var phases = [
     { until: 0.25, k: "Port overview", t: "Container port from above", p: "Scroll to move closer to the yard." },
     { until: 0.6, k: "Container yard", t: "Blocks open into containers", p: "Each block resolves into individual containers as you approach." },
-    { until: 2, k: "Ready for clearance", t: "Containers in the stack", p: "Continue to the tools to draft replies and check port charges." }
+    { until: 2, k: "Ready for clearance", t: "Containers in the stack", p: "Continue to the tools to draft replies and check charges." }
   ];
   var phaseIndex = -1;
 
-  function render(p) {
+  function renderScene(p) {
     var e = easeInOut(p);
     var s = 1 + 4 * e;
     var fx = CX + (FX - CX) * e, fy = CY + (FY - CY) * e;
@@ -753,52 +707,28 @@ tbody tr:last-child td { border-bottom: none; }
       kicker.textContent = phases[idx].k;
       title.textContent = phases[idx].t;
       text.textContent = phases[idx].p;
+      count.textContent = "0" + (idx + 1) + " / 03";
     }
-
-    progress.style.width = (p * 100).toFixed(2) + "%";
   }
 
-  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function sceneProgress() {
+    var rect = track.getBoundingClientRect();
+    var total = track.offsetHeight - window.innerHeight;
+    return total > 0 ? clamp(-rect.top / total, 0, 1) : 0;
+  }
+
   if (reduceMotion) {
-    render(1);
+    renderScene(1);
   } else {
-    function progressNow() {
-      var rect = track.getBoundingClientRect();
-      var total = track.offsetHeight - window.innerHeight;
-      return total > 0 ? clamp(-rect.top / total, 0, 1) : 0;
-    }
-
-    function onScroll() { render(progressNow()); }
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    render(progressNow());
-  }
-
-  /* ---------- Scroll reveal for highlight chips and cards ---------- */
-
-  if ("IntersectionObserver" in window && !reduceMotion) {
-    var revealEls = document.querySelectorAll(".chip, .card");
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("in-view");
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15 });
-    revealEls.forEach(function (el, i) {
-      el.style.transitionDelay = (i % 4) * 0.08 + "s";
-      io.observe(el);
-    });
-  } else {
-    document.querySelectorAll(".chip, .card").forEach(function (el) { el.classList.add("in-view"); });
+    var onSceneScroll = function () { renderScene(sceneProgress()); };
+    window.addEventListener("scroll", onSceneScroll, { passive: true });
+    window.addEventListener("resize", onSceneScroll);
+    renderScene(sceneProgress());
   }
 
   /* ---------- Tools ---------- */
 
   var API = "/api";
-  var $ = function (id) { return document.getElementById(id); };
   var llmAvailable = false;
   var approved = false;
 
@@ -845,19 +775,34 @@ tbody tr:last-child td { border-bottom: none; }
     });
   }
 
-  function addItem(list, text, extra) {
-    var li = document.createElement("li");
-    li.textContent = text;
-    if (extra) {
-      var c = document.createElement("span");
-      c.className = "cite";
-      c.textContent = extra;
-      li.appendChild(c);
-    }
-    list.appendChild(li);
-  }
-
   function toggle(wrap, on) { wrap.hidden = !on; }
+
+  function fillList(id, items, label, cite, icon) {
+    var list = $(id);
+    list.textContent = "";
+    items.forEach(function (item) {
+      var li = document.createElement("li");
+      if (icon) {
+        var svg = document.createElementNS(NS, "svg");
+        svg.setAttribute("class", "icon");
+        svg.setAttribute("aria-hidden", "true");
+        var use = document.createElementNS(NS, "use");
+        use.setAttribute("href", "#" + icon);
+        svg.appendChild(use);
+        li.appendChild(svg);
+      }
+      var span = document.createElement("span");
+      span.textContent = label(item);
+      li.appendChild(span);
+      if (cite) {
+        var c = document.createElement("span");
+        c.className = "cite";
+        c.textContent = cite(item);
+        li.appendChild(c);
+      }
+      list.appendChild(li);
+    });
+  }
 
   /* Tabs */
 
@@ -880,6 +825,10 @@ tbody tr:last-child td { border-bottom: none; }
       if (e.key === "ArrowRight") selectTab((n + 1) % tabs.length);
       if (e.key === "ArrowLeft") selectTab((n + tabs.length - 1) % tabs.length);
     });
+  });
+
+  document.querySelectorAll("[data-tab='charges']").forEach(function (a) {
+    a.addEventListener("click", function () { selectTab(1); });
   });
 
   /* Health */
@@ -948,15 +897,18 @@ tbody tr:last-child td { border-bottom: none; }
 
   function renderDraft(d) {
     $("draft-out").hidden = false;
-    $("draft-meta").textContent = "Mode: " + (d.mode || "offline") + "   Intent: " + (d.intent || "general");
+    $("draft-meta").textContent = "Mode: " + (d.mode || "offline") + "    Intent: " + (d.intent || "general");
     $("draft-text").value = d.draft || "";
 
     var sentences = d.sentences || [];
     var sl = $("sentences");
     sl.textContent = "";
-    sentences.forEach(function (s) {
+    sentences.forEach(function (s, n) {
       var li = document.createElement("li");
-      li.textContent = s.text;
+      li.style.setProperty("--n", n);
+      var t = document.createElement("span");
+      t.textContent = s.text;
+      li.appendChild(t);
       if (s.cite) {
         var c = document.createElement("span");
         c.className = "cite";
@@ -973,30 +925,24 @@ tbody tr:last-child td { border-bottom: none; }
     });
     toggle($("sentences-wrap"), sentences.length > 0);
 
-    fillList("missing", d.missing || [], function (m) { return "Please attach: " + m; });
+    fillList("missing", d.missing || [], function (m) { return "Please attach: " + m; }, null, "i-attach");
     toggle($("missing-wrap"), (d.missing || []).length > 0);
 
-    fillList("notes", d.notes || [], function (n) { return n; });
+    fillList("notes", d.notes || [], function (n) { return n; }, null, "i-info");
     toggle($("notes-wrap"), (d.notes || []).length > 0);
 
     fillList("rejected", d.rejected || [], function (r) {
       return (r.text || "") + (r.reason ? " (" + r.reason + ")" : "");
-    });
+    }, null, "i-cancel");
     toggle($("rejected-wrap"), (d.rejected || []).length > 0);
 
     var ev = d.evidence || [];
     fillList("evidence", ev, function (e) {
       return (e.doc ? e.doc + ", line " + e.line + ": " : "") + (e.text || "");
-    }, function (e) { return e.id; });
+    }, function (e) { return e.id; }, "i-filesearch");
     toggle($("evidence-wrap"), ev.length > 0);
 
     setApproved(false, d.status || "DRAFT - not sent. Needs agent approval.");
-  }
-
-  function fillList(id, items, label, cite) {
-    var list = $(id);
-    list.textContent = "";
-    items.forEach(function (item) { addItem(list, label(item), cite ? cite(item) : null); });
   }
 
   $("draft-text").addEventListener("input", function () { setApproved(false, "Draft edited. Approve again before copying."); });
@@ -1007,7 +953,7 @@ tbody tr:last-child td { border-bottom: none; }
     var btn = $("draft-btn");
     var seq = draftSeq;
     btn.disabled = true;
-    setStatus("Drafting...", false, $("query-status"));
+    setStatus("Drafting.", false, $("query-status"));
     postJson("/draft", {
       shipment_id: qSelect.value,
       question: q,
@@ -1066,7 +1012,7 @@ tbody tr:last-child td { border-bottom: none; }
     if (!t) { setStatus("Paste an invoice first.", true, $("charge-status")); return; }
     var btn = $("check-btn");
     btn.disabled = true;
-    setStatus("Checking...", false, $("charge-status"));
+    setStatus("Checking.", false, $("charge-status"));
     var payload = { text: t };
     var tariff = $("tariff-id").value.trim();
     if (tariff) payload.tariff_id = tariff;
