@@ -35,21 +35,27 @@ def read_invoice(text):
         if m:
             n, code, desc, qty, rate, amount = m.groups()
             try:
+                parsed_qty = Decimal(qty)
+                if code == "STORAGE" and parsed_qty != parsed_qty.to_integral_value():
+                    raise ReadError(f"LINE {n} storage quantity must be a whole number of days.")
                 lines.append({
                     "line": int(n), "code": code, "description": desc.strip(),
-                    "qty": Decimal(qty), "rate": money(rate), "amount": money(amount),
+                    "qty": parsed_qty, "rate": money(rate), "amount": money(amount),
                 })
             except ArithmeticError:
                 raise ReadError(f"LINE {n} quantity, rate and amount must be plain numbers.")
             continue
+        if line.upper().startswith("LINE "):
+            raise ReadError(f"Line '{line[:60]}' is not in the form: LINE n | CODE | description | qty | rate | amount.")
         key, sep, value = line.partition(":")
         key = key.strip().upper()
         if not sep:
             continue
-        if key in HEADER_KEYS:
-            header[key] = value.strip()
-        elif key in FOOTER_KEYS:
-            footer[key] = value.strip()
+        if key in HEADER_KEYS or key in FOOTER_KEYS:
+            target = header if key in HEADER_KEYS else footer
+            if key in target:
+                raise ReadError(f"{key} appears more than once.")
+            target[key] = value.strip()
 
     missing = [k for k in HEADER_KEYS | FOOTER_KEYS if k not in header and k not in footer]
     if missing or not lines:
