@@ -3,106 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customs Copilot - AI-Powered Customs Assistant</title>
+    <title>Customs Copilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --color-primary: #0F172A;
+            --color-on-primary: #FFFFFF;
+            --color-secondary: #334155;
+            --color-on-secondary: #FFFFFF;
+            --color-accent: #0369A1;
+            --color-on-accent: #FFFFFF;
+            --color-background: #F8FAFC;
+            --color-foreground: #020617;
+            --color-card: #FFFFFF;
+            --color-card-foreground: #020617;
+            --color-muted: #E8ECF1;
+            --color-muted-foreground: #475569;
+            --color-border: #E2E8F0;
+            --color-destructive: #DC2626;
+            --color-on-destructive: #FFFFFF;
+            --color-ring: #0F172A;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-12: 48px;
+            --type-base: 16px;
+            --type-sm: 14px;
+            --type-lg: 20px;
+            --type-xl: 28px;
+            --type-2xl: 32px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            font-size: 16px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-foreground);
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: var(--color-card);
             overflow: hidden;
+            border: 1px solid var(--color-border);
         }
 
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
+            padding: var(--space-12) var(--space-6);
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-primary);
+            color: var(--color-on-primary);
         }
 
         header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: var(--type-2xl);
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+            letter-spacing: -0.02em;
         }
 
         header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+            font-size: var(--type-sm);
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 400;
         }
 
         .status-bar {
-            background: #f5f5f5;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--color-background);
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid var(--color-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9em;
+            font-size: var(--type-sm);
+            color: var(--color-muted-foreground);
         }
 
         .status-indicator {
             display: inline-block;
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: var(--space-2);
+            background: var(--color-muted);
         }
 
         .status-online {
-            background: #4caf50;
+            background: #10B981;
         }
 
         .status-offline {
-            background: #ff9800;
+            background: #F59E0B;
         }
 
         .tabs {
             display: flex;
-            border-bottom: 2px solid #e0e0e0;
-            background: #f9f9f9;
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-background);
         }
 
         .tab-button {
             flex: 1;
-            padding: 20px;
+            padding: var(--space-4) var(--space-6);
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1em;
+            font-size: var(--type-sm);
             font-weight: 600;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab-button.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            background: white;
+            color: var(--color-muted-foreground);
+            border-bottom: 2px solid transparent;
+            transition: all 200ms ease;
+            font-family: inherit;
         }
 
         .tab-button:hover {
-            background: white;
+            color: var(--color-secondary);
+            background: rgba(51, 65, 85, 0.02);
+        }
+
+        .tab-button:focus {
+            outline: 2px solid var(--color-ring);
+            outline-offset: -2px;
+        }
+
+        .tab-button.active {
+            color: var(--color-accent);
+            border-bottom-color: var(--color-accent);
+            background: var(--color-card);
         }
 
         .tab-content {
             display: none;
-            padding: 30px;
-            animation: fadeIn 0.3s ease;
+            padding: var(--space-8) var(--space-6);
+            animation: fadeIn 300ms ease-out;
         }
 
         .tab-content.active {
@@ -114,155 +163,294 @@
             to { opacity: 1; }
         }
 
+        h2 {
+            font-size: var(--type-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+            color: var(--color-foreground);
+        }
+
+        .description {
+            font-size: var(--type-sm);
+            color: var(--color-muted-foreground);
+            margin: var(--space-4) 0 var(--space-8) 0;
+            line-height: 1.6;
+        }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: var(--space-8);
+        }
+
+        .form-group:last-child {
+            margin-bottom: var(--space-6);
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: var(--space-3);
             font-weight: 600;
-            color: #333;
+            font-size: var(--type-sm);
+            color: var(--color-foreground);
         }
 
         input[type="text"],
         textarea,
         select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1em;
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: var(--type-base);
             font-family: inherit;
-            transition: border-color 0.3s ease;
+            background: var(--color-card);
+            color: var(--color-foreground);
+            transition: border-color 200ms ease, box-shadow 200ms ease;
         }
 
         input[type="text"]:focus,
         textarea:focus,
         select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1);
         }
 
         textarea {
             resize: vertical;
             min-height: 120px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            flex-wrap: wrap;
         }
 
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: var(--space-3) var(--space-6);
             border: none;
-            padding: 12px 30px;
-            border-radius: 6px;
-            font-size: 1em;
+            border-radius: 4px;
+            font-size: var(--type-sm);
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-right: 10px;
+            transition: all 200ms ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            opacity: 0.9;
         }
 
         button:active {
-            transform: translateY(0);
+            opacity: 0.95;
         }
 
-        button.secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        button.secondary:hover {
-            background: #e0e0e0;
-            box-shadow: none;
+        button:focus {
+            outline: 2px solid var(--color-ring);
+            outline-offset: 2px;
         }
 
         button:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
+        .btn-primary {
+            background: var(--color-accent);
+            color: var(--color-on-accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #0256B1;
+        }
+
+        .btn-secondary {
+            background: var(--color-muted);
+            color: var(--color-muted-foreground);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #D4D8DF;
+        }
+
         .result-box {
-            background: #f9f9f9;
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            border-radius: 6px;
-            margin-top: 20px;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-accent);
+            padding: var(--space-6);
+            border-radius: 4px;
+            margin-top: var(--space-8);
             display: none;
         }
 
         .result-box.show {
             display: block;
+            animation: slideUp 300ms ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .result-box.error {
-            border-left-color: #f44336;
-            background: #ffebee;
+            border-left-color: var(--color-destructive);
+            background: rgba(220, 38, 38, 0.02);
         }
 
         .result-box.success {
-            border-left-color: #4caf50;
-            background: #f1f8f4;
+            border-left-color: #10B981;
+            background: rgba(16, 185, 129, 0.02);
         }
 
         .result-box.warning {
-            border-left-color: #ff9800;
-            background: #fff3f0;
+            border-left-color: #F59E0B;
+            background: rgba(245, 158, 11, 0.02);
         }
 
         .result-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: var(--space-4);
+            font-size: var(--type-lg);
+            color: var(--color-foreground);
+        }
+
+        .result-content {
+            font-size: var(--type-sm);
+            color: var(--color-card-foreground);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .result-meta {
+            margin-top: var(--space-6);
+            padding-top: var(--space-6);
+            border-top: 1px solid var(--color-border);
+            font-size: var(--type-sm);
+            color: var(--color-muted-foreground);
+        }
+
+        .meta-item {
+            margin: var(--space-2) 0;
         }
 
         .issue-item {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 6px;
-            border-left: 3px solid #ff9800;
+            background: var(--color-card);
+            padding: var(--space-4);
+            margin: var(--space-4) 0;
+            border-radius: 4px;
+            border: 1px solid var(--color-border);
+            border-left: 3px solid #F59E0B;
+        }
+
+        .issue-type {
+            font-weight: 700;
+            color: var(--color-foreground);
+            font-size: var(--type-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-2);
+        }
+
+        .issue-detail {
+            font-size: var(--type-sm);
+            color: var(--color-muted-foreground);
+            line-height: 1.5;
         }
 
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--color-border);
+            border-top-color: var(--color-accent);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            to { transform: rotate(360deg); }
         }
 
         .copy-button {
-            background: #4caf50;
+            background: #10B981;
+            color: white;
         }
 
-        .copy-button:hover {
-            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        .copy-button:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: var(--space-8) var(--space-4);
+            }
+
+            header h1 {
+                font-size: var(--type-xl);
+            }
+
+            .tab-content {
+                padding: var(--space-6) var(--space-4);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: #0F172A;
+                --color-foreground: #F8FAFC;
+                --color-card: #1E293B;
+                --color-card-foreground: #F8FAFC;
+                --color-muted: #334155;
+                --color-muted-foreground: #CBD5E1;
+                --color-border: #334155;
+            }
+
+            input[type="text"],
+            textarea,
+            select {
+                background: var(--color-card);
+                color: var(--color-card-foreground);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>⚖️ Customs Copilot</h1>
+            <h1>Customs Copilot</h1>
             <p>AI-Powered Customs Clearance Assistant</p>
         </header>
 
@@ -275,14 +463,14 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-button active" onclick="switchTab('query')">📝 Query Reply</button>
-            <button class="tab-button" onclick="switchTab('charges')">💰 Charge Checker</button>
+            <button class="tab-button active" onclick="switchTab('query')">Query Reply</button>
+            <button class="tab-button" onclick="switchTab('charges')">Charge Checker</button>
         </div>
 
         <!-- Query Reply Tab -->
         <div id="query" class="tab-content active">
-            <h2>Draft Response to Customs Query</h2>
-            <p style="margin: 20px 0; color: #666;">Ask a question about your shipment and get a cited response based on customs documentation.</p>
+            <h2>Query Reply</h2>
+            <p class="description">Ask a question about your shipment and get a cited response based on customs documentation.</p>
 
             <div class="form-group">
                 <label for="shipmentId">Shipment ID</label>
@@ -296,12 +484,12 @@
 
             <div class="form-group">
                 <label for="documents">Documents (JSON)</label>
-                <textarea id="documents" placeholder='[{"name": "invoice.pdf", "content": "..."}]' style="min-height: 100px;"></textarea>
+                <textarea id="documents" placeholder='[{"name": "invoice.pdf", "content": "..."}]'></textarea>
             </div>
 
             <div class="button-group">
-                <button onclick="processQuery()">Generate Response</button>
-                <button class="secondary" onclick="clearQueryForm()">Clear</button>
+                <button class="btn-primary" onclick="processQuery()">Generate Response</button>
+                <button class="btn-secondary" onclick="clearQueryForm()">Clear</button>
             </div>
 
             <div id="queryResult" class="result-box"></div>
@@ -309,8 +497,8 @@
 
         <!-- Charge Checker Tab -->
         <div id="charges" class="tab-content">
-            <h2>Check Invoice Charges</h2>
-            <p style="margin: 20px 0; color: #666;">Validate charges against tariff rates and flag discrepancies.</p>
+            <h2>Charge Checker</h2>
+            <p class="description">Validate charges against tariff rates and flag discrepancies.</p>
 
             <div class="form-group">
                 <label for="invoiceId">Invoice ID</label>
@@ -324,12 +512,12 @@
 
             <div class="form-group">
                 <label for="chargesJson">Charges (JSON)</label>
-                <textarea id="chargesJson" placeholder='[{"description": "Port handling", "tariff_ref": "PH001", "amount": 1000, "gst": 180}]' style="min-height: 120px;"></textarea>
+                <textarea id="chargesJson" placeholder='[{"description": "Port handling", "tariff_ref": "PH001", "amount": 1000, "gst": 180}]'></textarea>
             </div>
 
             <div class="button-group">
-                <button onclick="checkCharges()">Validate Charges</button>
-                <button class="secondary" onclick="clearChargesForm()">Clear</button>
+                <button class="btn-primary" onclick="checkCharges()">Validate Charges</button>
+                <button class="btn-secondary" onclick="clearChargesForm()">Clear</button>
             </div>
 
             <div id="chargesResult" class="result-box"></div>
@@ -339,13 +527,11 @@
     <script>
         const API_BASE = window.location.origin + '/api';
 
-        // Initialize on page load
         window.addEventListener('DOMContentLoaded', () => {
             checkSystemStatus();
         });
 
         function switchTab(tabName) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -353,7 +539,6 @@
                 btn.classList.remove('active');
             });
 
-            // Show selected tab
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
@@ -373,7 +558,7 @@
 
             } catch (error) {
                 document.getElementById('statusIndicator').className = 'status-indicator status-offline';
-                document.getElementById('statusText').textContent = 'System: Offline Mode (local processing)';
+                document.getElementById('statusText').textContent = 'System: Offline Mode';
                 document.getElementById('modeText').textContent = '';
             }
         }
@@ -399,7 +584,7 @@
                 }
             }
 
-            showResult(resultBox, '<span class="loading"></span> Processing query...', 'success');
+            showResult(resultBox, '<span class="loading"></span> Processing...', 'success');
 
             try {
                 const response = await fetch(`${API_BASE}/query-reply`, {
@@ -419,22 +604,22 @@
                     return;
                 }
 
-                let resultHtml = '<div class="result-title">📄 Draft Response:</div>';
-                resultHtml += `<p style="white-space: pre-wrap; margin: 15px 0;">${escapeHtml(data.draft_response)}</p>`;
+                let resultHtml = '<div class="result-title">Draft Response</div>';
+                resultHtml += `<div class="result-content">${escapeHtml(data.draft_response)}</div>`;
 
-                resultHtml += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">';
-                resultHtml += '<strong>✓ Verification Status:</strong><br/>';
-                resultHtml += `• Documents Valid: ${data.verification.documents_valid ? '✓' : '✗'}<br/>`;
-                resultHtml += `• Citations Valid: ${data.verification.citations_valid ? '✓' : '✗'}<br/>`;
-                resultHtml += `• Ready for Approval: ${data.ready_for_approval ? '✓ Yes' : '✗ No'}<br/>`;
+                resultHtml += '<div class="result-meta">';
+                resultHtml += '<strong>Verification Status</strong><br/>';
+                resultHtml += `<div class="meta-item">Documents Valid: ${data.verification.documents_valid ? '✓' : '✗'}</div>`;
+                resultHtml += `<div class="meta-item">Citations Valid: ${data.verification.citations_valid ? '✓' : '✗'}</div>`;
+                resultHtml += `<div class="meta-item">Ready for Approval: ${data.ready_for_approval ? '✓ Yes' : '✗ No'}</div>`;
 
                 if (data.verification.missing_documents.length > 0) {
-                    resultHtml += `<br/>Missing Documents: ${data.verification.missing_documents.join(', ')}`;
+                    resultHtml += `<div class="meta-item">Missing: ${data.verification.missing_documents.join(', ')}</div>`;
                 }
                 resultHtml += '</div>';
 
                 if (data.ready_for_approval) {
-                    resultHtml += '<div class="button-group" style="margin-top: 20px;"><button class="copy-button" onclick="copyToClipboard(this)">📋 Copy Response</button></div>';
+                    resultHtml += '<div class="button-group" style="margin-top: var(--space-6);"><button class="copy-button" onclick="copyToClipboard(this)">Copy Response</button></div>';
                 }
 
                 showResult(resultBox, resultHtml, 'success');
@@ -463,7 +648,7 @@
                 return;
             }
 
-            showResult(resultBox, '<span class="loading"></span> Validating charges...', 'success');
+            showResult(resultBox, '<span class="loading"></span> Validating...', 'success');
 
             try {
                 const response = await fetch(`${API_BASE}/check-charges`, {
@@ -483,25 +668,27 @@
                     return;
                 }
 
-                let resultHtml = `<div class="result-title">💰 Charge Validation Result</div>`;
-                resultHtml += `<p><strong>Status:</strong> ${data.status}</p>`;
-                resultHtml += `<p><strong>Total Variance:</strong> ₹${data.total_variance.toFixed(2)}</p>`;
+                let resultHtml = '<div class="result-title">Charge Validation Result</div>';
+                resultHtml += `<div class="meta-item"><strong>Status:</strong> ${data.status}</div>`;
+                resultHtml += `<div class="meta-item"><strong>Total Variance:</strong> ₹${data.total_variance.toFixed(2)}</div>`;
 
                 if (data.issues.length > 0) {
-                    resultHtml += `<p><strong style="color: #ff9800;">⚠️ ${data.issues.length} Issue(s) Found:</strong></p>`;
+                    resultHtml += `<div style="margin-top: var(--space-4);"><strong>${data.issues.length} Issue(s) Found</strong></div>`;
                     data.issues.forEach(issue => {
                         resultHtml += `
                             <div class="issue-item">
-                                <strong>${issue.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
-                                Charge: ${issue.charge}<br/>
-                                Billed: ₹${issue.billed.toFixed(2)} | Expected: ₹${issue.expected.toFixed(2)}<br/>
-                                Tariff Ref: ${issue.tariff_ref}<br/>
-                                Message: ${issue.message}
+                                <div class="issue-type">${issue.type.replace(/_/g, ' ')}</div>
+                                <div class="issue-detail">
+                                    Charge: ${issue.charge}<br/>
+                                    Billed: ₹${issue.billed.toFixed(2)} | Expected: ₹${issue.expected.toFixed(2)}<br/>
+                                    Tariff Ref: ${issue.tariff_ref}<br/>
+                                    ${issue.message}
+                                </div>
                             </div>
                         `;
                     });
                 } else {
-                    resultHtml += '<p style="color: #4caf50;"><strong>✓ All charges are valid!</strong></p>';
+                    resultHtml += '<div class="meta-item" style="color: #10B981;"><strong>✓ All charges are valid!</strong></div>';
                 }
 
                 showResult(resultBox, resultHtml, data.issues.length > 0 ? 'warning' : 'success');
@@ -518,10 +705,10 @@
         }
 
         function copyToClipboard(button) {
-            const text = button.closest('.result-box').innerText.replace('📋 Copy Response', '').trim();
+            const text = button.closest('.result-box').querySelector('.result-content').innerText;
             navigator.clipboard.writeText(text).then(() => {
                 button.textContent = '✓ Copied!';
-                setTimeout(() => { button.textContent = '📋 Copy Response'; }, 2000);
+                setTimeout(() => { button.textContent = 'Copy Response'; }, 2000);
             });
         }
 
