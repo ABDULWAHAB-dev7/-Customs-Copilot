@@ -34,10 +34,13 @@ def read_invoice(text):
         m = LINE.match(line)
         if m:
             n, code, desc, qty, rate, amount = m.groups()
-            lines.append({
-                "line": int(n), "code": code, "description": desc.strip(),
-                "qty": Decimal(qty), "rate": money(rate), "amount": money(amount),
-            })
+            try:
+                lines.append({
+                    "line": int(n), "code": code, "description": desc.strip(),
+                    "qty": Decimal(qty), "rate": money(rate), "amount": money(amount),
+                })
+            except ArithmeticError:
+                raise ReadError(f"LINE {n} quantity, rate and amount must be plain numbers.")
             continue
         key, sep, value = line.partition(":")
         key = key.strip().upper()
@@ -112,6 +115,7 @@ def check(inv, card):
     storage = card["storage"]
     seen = set()
     storage_seen = False
+    line_over = {}
 
     for ln in inv["lines"]:
         code, n = ln["code"], ln["line"]
@@ -125,6 +129,7 @@ def check(inv, card):
             if storage_seen:
                 flags.append(flag("DUPLICATE", n, "A second storage line is billed; storage is checked once per invoice.",
                                   "Duplicate storage", fmt(ln["amount"]), "0.00", fmt(ln["amount"])))
+                line_over[n] = ln["amount"]
             storage_seen = True
             continue
 
@@ -132,21 +137,25 @@ def check(inv, card):
         if key in seen:
             flags.append(flag("DUPLICATE", n, f"{code} {ln['description']} for {fmt(ln['amount'])} appears more than once.",
                               "Duplicate line", fmt(ln["amount"]), "0.00", fmt(ln["amount"])))
+            line_over[n] = ln["amount"]
         seen.add(key)
 
         if code not in charges:
             flags.append(flag("NOT_IN_TARIFF", n, f"{code} is not on the tariff card.",
                               "Not in tariff", fmt(ln["amount"]), "0.00", fmt(ln["amount"])))
+            line_over[n] = ln["amount"]
             continue
 
         rates = charges[code]["rate"]
-        if size in rates:
-            exp_rate = money(rates[size])
-            if ln["rate"] != exp_rate:
-                over = max(Decimal("0"), (ln["rate"] - exp_rate) * ln["qty"])
-                flags.append(flag("RATE_MISMATCH", n,
-                                  f"Billed rate {fmt(ln['rate'])} for a {size} ft container; card says {fmt(exp_rate)}.",
-                                  f"{code} rate {size} ft", fmt(ln["rate"]), fmt(exp_rate), fmt(over)))
+        if size not in rates:
+            raise TariffError(f"Tariff card has no {code} rate for container size {size}.")
+        exp_rate = money(rates[size])
+        if ln["rate"] != exp_rate:
+            over = max(Decimal("0"), (ln["rate"] - exp_rate) * ln["qty"])
+            flags.append(flag("RATE_MISMATCH", n,
+                              f"Billed rate {fmt(ln['rate'])} for a {size} ft container; card says {fmt(exp_rate)}.",
+                              f"{code} rate {size} ft", fmt(ln["rate"]), fmt(exp_rate), fmt(over)))
+        line_over.setdefault(n, max(Decimal("0"), ln["amount"] - money(ln["qty"] * exp_rate)))
 
     free = storage["free_days"]
     dwell = (inv["gate_out"] - inv["gate_in"]).days
@@ -155,14 +164,16 @@ def check(inv, card):
     billed_days = int(storage_lines[0]["qty"]) if storage_lines else 0
     billed_amount = storage_lines[0]["amount"] if storage_lines else Decimal("0")
     exp_amount = slab_amount(storage, size, chargeable)
+    storage_over = max(Decimal("0"), billed_amount - exp_amount)
+    if storage_lines:
+        line_over[storage_lines[0]["line"]] = storage_over
     if billed_days != chargeable or billed_amount != exp_amount:
-        over = max(Decimal("0"), billed_amount - exp_amount)
         flags.append(flag("STORAGE_DAYS", storage_lines[0]["line"] if storage_lines else None,
                           f"Billed {billed_days} storage days; {dwell} days dwell less {free} free days leaves {chargeable}.",
                           f"Free days: {free}",
                           f"{billed_days} days / {fmt(billed_amount)}",
                           f"{chargeable} days / {fmt(exp_amount)}",
-                          fmt(over)))
+                          fmt(storage_over)))
 
     sub_calc = money(sum((ln["amount"] for ln in inv["lines"]), Decimal("0")))
     gst_pct = Decimal(card["gst_percent"])
@@ -178,14 +189,13 @@ def check(inv, card):
         flags.append(flag("TOTAL_MISMATCH", None, f"Total should be {fmt(total_calc)}, footer says {fmt(inv['total'])}.",
                           "Total", fmt(inv["total"]), fmt(total_calc), "0.00"))
 
-    return flags, dwell
+    return flags, dwell, sum(line_over.values(), Decimal("0"))
 
 
 def check_invoice(text, tariffs, tariff_id=None):
     inv = read_invoice(text)
     tid, card = select_tariff(tariffs, tariff_id, inv["terminal"])
-    flags, dwell = check(inv, card)
-    over = sum((Decimal(f["overcharge"]) for f in flags), Decimal("0"))
+    flags, dwell, over = check(inv, card)
     if flags:
         explanation = (f"{len(flags)} check(s) disagree with tariff card {tid}. "
                        f"Overcharge before GST: {fmt(over)}. Each flag names the tariff line it was compared with.")
