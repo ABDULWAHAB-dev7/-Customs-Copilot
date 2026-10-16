@@ -3,179 +3,391 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customs Copilot</title>
+<title>Customs Copilot — Cited customs replies &amp; port charge checks</title>
+<meta name="description" content="Draft cited replies to customs queries and verify port or CFS invoices against tariff cards. Nothing is sent without your approval.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310B981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='18' height='10' rx='1.5' fill='%2307080D'/%3E%3Cline x1='9' y1='7' x2='9' y2='17'/%3E%3Cline x1='15' y1='7' x2='15' y2='17'/%3E%3Cline x1='3' y1='20' x2='21' y2='20'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #0F172A;
-  --ink-2: #334155;
-  --muted: #64748B;
-  --line: #E2E8F0;
-  --paper: #FFFFFF;
-  --accent: #0369A1;
-  --accent-ink: #075985;
-  --bad: #B91C1C;
+  --bg: #07080D;
+  --surface: #0D0F18;
+  --surface-2: #131624;
+  --surface-3: #171B2C;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.18);
+  --ink: #F3F4F6;
+  --ink-2: #C7CBD6;
+  --muted: #8B93A7;
+
+  --accent: #10B981;
+  --accent-2: #06B6D4;
+  --accent-ink: #34D399;
+  --accent-grad: linear-gradient(120deg, #10B981 0%, #06B6D4 100%);
+  --accent-grad-soft: linear-gradient(120deg, rgba(16,185,129,0.14), rgba(6,182,212,0.14));
+  --glow: rgba(16, 185, 129, 0.32);
+
+  --glass: rgba(19, 22, 36, 0.55);
+  --glass-strong: rgba(19, 22, 36, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --bad: #F87171;
+  --bad-bg: rgba(248, 113, 113, 0.1);
+  --good: #34D399;
+
   --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 64px;
-  color-scheme: light;
+  --radius: 16px;
+  --radius-sm: 10px;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { scroll-behavior: smooth; }
+
 body {
-  font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  background: var(--paper);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
   color: var(--ink);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
+
+.mono { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; }
+
+::selection { background: var(--accent); color: #04140D; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #262B3D; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #343B57; }
+
+.icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+
+/* ---------- Ambient decoration ---------- */
+
+.ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+
+.grid-decor {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.09) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black 35%, transparent 85%);
+  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black 35%, transparent 85%);
+}
+
+.blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.55; will-change: transform; animation: drift-blob 24s ease-in-out infinite alternate; }
+.blob.b1 { width: 560px; height: 560px; left: -160px; top: -160px; background: radial-gradient(circle at 30% 30%, rgba(16,185,129,0.55), transparent 70%); animation-delay: 0s; }
+.blob.b2 { width: 460px; height: 460px; right: -140px; top: 8%; background: radial-gradient(circle at 60% 40%, rgba(6,182,212,0.5), transparent 70%); animation-delay: -7s; }
+.blob.b3 { width: 520px; height: 520px; left: 15%; top: 70%; background: radial-gradient(circle at 50% 50%, rgba(16,185,129,0.3), transparent 70%); opacity: 0.4; animation-delay: -14s; }
+.blob.b4 { width: 420px; height: 420px; right: 8%; bottom: -100px; background: radial-gradient(circle at 50% 50%, rgba(6,182,212,0.35), transparent 70%); animation-delay: -20s; }
+
+@keyframes drift-blob {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(40px, -30px) scale(1.08); }
+  100% { transform: translate(-30px, 20px) scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) { .blob { animation: none; } }
+
+/* ---------- Crosshair corner decoration ---------- */
+
+.crosshair { position: relative; }
+.crosshair::before, .crosshair::after {
+  content: "+";
+  position: absolute;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; line-height: 1;
+  color: rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+.crosshair::before { top: -7px; left: -6px; }
+.crosshair::after { bottom: -7px; right: -6px; }
 
 /* ---------- Scroll scene ---------- */
 
-.scene-track { position: relative; height: 260vh; }
+.scene-track { position: relative; height: 260vh; z-index: 1; }
 
 .scene {
   position: sticky;
   top: 0;
   height: 100vh;
   overflow: hidden;
-  background: #E6EEF5;
+  background: radial-gradient(120% 90% at 50% 0%, #0E1C2E 0%, #0A0F1A 55%, #07080D 100%);
 }
 
-.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.scene > svg#scene-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.scene-vignette {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 100%, rgba(7,8,13,0.96) 0%, rgba(7,8,13,0) 45%),
+              linear-gradient(180deg, rgba(16,185,129,0.04), rgba(6,182,212,0.03));
+}
 
 .waves { animation: drift 9s linear infinite; }
 @keyframes drift { from { transform: translateX(0); } to { transform: translateX(-80px); } }
 
 .topbar {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  position: absolute; top: 0; left: 0; right: 0; z-index: 3;
   display: flex; justify-content: space-between; align-items: center;
   padding: var(--s2) var(--s3);
 }
 
-.brand { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+.brand-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--accent-grad); color: #04140D; font-size: 17px;
+  box-shadow: 0 6px 18px var(--glow);
+}
+.brand-text-a { color: var(--ink); }
+.brand-text-b {
+  background: var(--accent-grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
 
 .pill {
-  font-size: 13px; color: var(--ink-2);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--line);
-  padding: 6px 12px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  padding: 7px 14px 7px 11px; border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
 }
+.ping { position: relative; width: 8px; height: 8px; flex: 0 0 auto; }
+.ping::before, .ping::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--good);
+}
+.ping::before { animation: ping 1.8s cubic-bezier(0,0,0.2,1) infinite; opacity: 0.6; }
+@keyframes ping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
 
 .caption {
-  position: absolute; left: var(--s3); bottom: var(--s4); z-index: 2;
-  max-width: 460px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: var(--s3);
+  position: absolute; left: var(--s3); bottom: var(--s4); z-index: 3;
+  max-width: 480px;
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border-radius: var(--radius);
+  padding: var(--s3) var(--s3);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.45);
 }
 
-.caption .kicker { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-.caption h1 { font-size: 28px; line-height: 1.2; letter-spacing: -0.01em; margin-top: 6px; }
+.caption .kicker-row { display: flex; align-items: center; gap: 8px; }
+.caption .kicker { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; }
+.caption h1 { font-size: 28px; line-height: 1.2; letter-spacing: -0.015em; margin-top: 8px; font-weight: 800; color: var(--ink); }
 .caption p { margin-top: 8px; color: var(--ink-2); font-size: 15px; }
 
 .cue {
-  position: absolute; right: var(--s3); bottom: var(--s4); z-index: 2;
-  color: var(--ink); font-weight: 700; font-size: 15px; text-decoration: none;
-  background: rgba(255, 255, 255, 0.94); border: 1px solid var(--line);
-  border-radius: 999px; padding: 10px 16px;
+  position: absolute; right: var(--s3); bottom: var(--s4); z-index: 3;
+  display: inline-flex; align-items: center; gap: 8px;
+  color: #04140D; font-weight: 700; font-size: 15px; text-decoration: none;
+  background: var(--accent-grad);
+  border-radius: 999px; padding: 12px 20px;
+  box-shadow: 0 10px 28px var(--glow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cue:hover { transform: translateY(-2px); box-shadow: 0 14px 34px var(--glow); }
+.cue .icon { transition: transform 0.2s ease; }
+.cue:hover .icon { transform: translateX(3px); }
+
+.progress-track { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; z-index: 3; background: rgba(255,255,255,0.06); }
+.progress { height: 100%; width: 0; background: var(--accent-grad); box-shadow: 0 0 12px var(--glow); }
+
+/* ---------- Highlights strip ---------- */
+
+.highlights {
+  position: relative; z-index: 1;
+  max-width: 1040px; margin: 0 auto; padding: var(--s4) var(--s3) 0;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3);
 }
 
-.progress {
-  position: absolute; left: 0; bottom: 0; height: 3px; width: 0;
-  background: var(--accent); z-index: 2;
+.chip {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius);
+  padding: var(--s3);
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
+.chip.in-view { opacity: 1; transform: translateY(0); }
+.chip:hover { box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(16,185,129,0.15) inset; border-color: var(--border-hover); }
+
+.chip-icon {
+  flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-grad-soft); color: var(--accent-ink); font-size: 19px;
+  border: 1px solid rgba(16,185,129,0.2);
+}
+.chip h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
+.chip p { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
 
 /* ---------- Tools ---------- */
 
-.tools { max-width: 920px; margin: 0 auto; padding: var(--s5) var(--s3) var(--s4); }
+.tools { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: var(--s5) var(--s3) var(--s4); }
 
-.tabs { display: flex; gap: var(--s3); border-bottom: 1px solid var(--line); }
+.tools-head { text-align: center; max-width: 620px; margin: 0 auto var(--s4); }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--accent-ink); background: var(--accent-grad-soft);
+  border: 1px solid rgba(16,185,129,0.2);
+  padding: 6px 14px; border-radius: 999px; margin-bottom: var(--s2);
+}
+.tools-head h2.lead { font-size: 30px; font-weight: 800; letter-spacing: -0.015em; color: var(--ink); }
+.tools-head .sub { color: var(--muted); margin-top: 10px; font-size: 15.5px; }
+
+.card {
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  padding: var(--s4);
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.card.in-view { opacity: 1; transform: translateY(0); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: var(--s3); }
 
 .tab {
-  font: inherit; font-weight: 700; font-size: 16px; color: var(--muted);
+  display: inline-flex; align-items: center; gap: 8px;
+  font: inherit; font-weight: 700; font-size: 15.5px; color: var(--muted);
   background: none; border: 0; border-bottom: 2px solid transparent;
-  padding: 12px 0; margin-bottom: -1px; cursor: pointer;
+  padding: 12px 14px; margin-bottom: -1px; cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color 0.2s ease, background 0.2s ease;
 }
-
-.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab:hover { color: var(--ink-2); background: rgba(16,185,129,0.06); }
+.tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); }
+.tab[aria-selected="true"]:hover { background: none; }
 
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible, .cue:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: 6px;
 }
 
-.panel { padding: var(--s4) 0 0; }
+.panel { padding: var(--s3) 0 0; }
 .panel[hidden] { display: none; }
 
-h2 { font-size: 26px; letter-spacing: -0.01em; }
-.lede { color: var(--ink-2); margin: var(--s1) 0 var(--s4); max-width: 620px; }
+h2 { font-size: 22px; letter-spacing: -0.01em; font-weight: 800; display: flex; align-items: center; gap: 10px; color: var(--ink); }
+h2 .h2-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 10px; font-size: 17px;
+  background: var(--accent-grad-soft); color: var(--accent-ink);
+  border: 1px solid rgba(16,185,129,0.2);
+}
+.lede { color: var(--ink-2); margin: var(--s1) 0 var(--s4); max-width: 620px; font-size: 15px; }
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
 .field { margin-bottom: var(--s3); }
 
-label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.03em; }
+label .icon { color: var(--accent-ink); font-size: 14px; }
 
 input, select, textarea {
-  width: 100%; font: inherit; font-size: 16px; color: var(--ink);
-  background: var(--paper); border: 1px solid #CBD5E1; border-radius: 6px;
+  width: 100%; font: inherit; font-size: 15.5px; color: var(--ink);
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm);
   padding: 12px 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
+input::placeholder, textarea::placeholder { color: #565E73; }
+input:hover, select:hover, textarea:hover { border-color: rgba(16,185,129,0.35); }
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent); background: rgba(16,185,129,0.04);
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.14);
+}
+select option { background: var(--surface-2); color: var(--ink); }
 
 textarea { min-height: 120px; line-height: 1.5; resize: vertical; }
 
-.check { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink-2); }
-.check input { width: auto; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--ink-2); font-weight: 500; text-transform: none; }
+.check input { width: auto; accent-color: var(--accent); }
 
 .btn {
-  font: inherit; font-size: 15px; font-weight: 700;
-  color: var(--paper); background: var(--ink); border: 1px solid var(--ink);
-  border-radius: 6px; padding: 12px 20px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  font: inherit; font-size: 14.5px; font-weight: 700;
+  color: #04140D; background: var(--accent-grad); border: none;
+  border-radius: var(--radius-sm); padding: 12px 22px; cursor: pointer;
+  box-shadow: 0 10px 26px var(--glow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  text-transform: uppercase; letter-spacing: 0.02em;
 }
+.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px var(--glow); }
+.btn:active:not(:disabled) { transform: translateY(0); }
 
-.btn.ghost { color: var(--ink); background: var(--paper); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.ghost {
+  color: var(--ink-2); background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); box-shadow: none;
+}
+.btn.ghost:hover:not(:disabled) { border-color: rgba(16,185,129,0.4); color: var(--accent-ink); background: rgba(16,185,129,0.06); box-shadow: 0 8px 22px rgba(0,0,0,0.3); }
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: var(--s2); }
 
-.status { min-height: 24px; margin-top: var(--s2); font-size: 15px; color: var(--ink-2); }
+.status { min-height: 24px; margin-top: var(--s2); font-size: 14px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; }
 .status.err { color: var(--bad); }
+.status:empty { margin-top: 0; }
 
-.out { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--line); }
+.out { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--border); }
 .out[hidden] { display: none; }
 
-.kicker { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+.kicker { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; margin-bottom: 10px; }
 
 ol.sentences { padding-left: 20px; }
-ol.sentences li { margin-bottom: 12px; }
+ol.sentences li { margin-bottom: 14px; color: var(--ink-2); }
 
 .cite {
-  font-family: ui-monospace, Consolas, monospace; font-size: 12px;
-  color: var(--accent-ink); background: #E0F2FE;
-  padding: 2px 6px; border-radius: 4px; margin-left: 6px; white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+  color: var(--accent-ink); background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.2);
+  padding: 2px 7px; border-radius: 6px; margin-left: 6px; white-space: nowrap;
 }
 
-.quote { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
+.quote { display: block; color: var(--muted); font-size: 13.5px; margin-top: 3px; font-style: italic; }
 
 ul.plain { list-style: none; }
-ul.plain li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+ul.plain li { display: flex; align-items: flex-start; gap: 8px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14.5px; color: var(--ink-2); }
 
 .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s2); margin-bottom: var(--s3); }
-.summary span { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.summary strong { font-size: 18px; }
+.summary > div {
+  background: rgba(16,185,129,0.05); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+}
+.summary span { display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.summary strong { font-size: 19px; font-weight: 800; color: var(--ink); }
 
-.explain { color: var(--ink-2); margin-bottom: var(--s3); }
+.explain { color: var(--ink-2); margin-bottom: var(--s3); font-size: 15px; }
 
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; color: var(--ink-2); }
+th { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: rgba(255,255,255,0.03); }
+tbody tr:hover { background: rgba(16,185,129,0.04); }
+tbody tr:last-child td { border-bottom: none; }
 
-.foot { max-width: 920px; margin: 0 auto; padding: var(--s3); border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.foot {
+  position: relative; z-index: 1;
+  max-width: 960px; margin: 0 auto; padding: var(--s3);
+  display: flex; align-items: center; gap: 10px;
+  border-top: 1px solid var(--border); color: var(--muted); font-size: 13px;
+}
+.foot .icon { color: var(--accent-ink); font-size: 16px; flex: 0 0 auto; }
 
 /* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .highlights { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 720px) {
   .grid { grid-template-columns: 1fr; }
@@ -185,160 +397,246 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
   .cue { display: none; }
   .tools { padding: var(--s4) var(--s2) var(--s3); }
   .topbar { padding: var(--s2); }
-  .tabs { gap: var(--s2); }
+  .tabs { gap: 2px; }
+  .card { padding: var(--s3); border-radius: 16px; }
+  .tools-head h2.lead { font-size: 24px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .waves { animation: none; }
   .scene-track { height: 100vh; }
+  .chip, .card { transition: none; opacity: 1; transform: none; }
+  .ping::before { animation: none; }
 }
 </style>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="icon-ship" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="1.5"/><line x1="9" y1="7" x2="9" y2="17"/><line x1="15" y1="7" x2="15" y2="17"/><line x1="3" y1="20" x2="21" y2="20"/></symbol>
+<symbol id="icon-location" viewBox="0 0 24 24"><path d="M12 21s7-7.58 7-12a7 7 0 1 0-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+<symbol id="icon-arrow-right" viewBox="0 0 24 24"><line x1="4" y1="12" x2="19" y2="12"/><path d="M13 6l6 6-6 6"/></symbol>
+<symbol id="icon-shield-check" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="icon-invoice" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></symbol>
+<symbol id="icon-user-check" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c0-3.5 2.5-6 5.5-6s5.5 2.5 5.5 6"/><path d="M16 13l1.5 1.5L21 11"/></symbol>
+<symbol id="icon-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.3 4.2L17.5 8.5l-4.2 1.3L12 14l-1.3-4.2L6.5 8.5l4.2-1.3z"/><path d="M19 15l.6 1.9 1.9.6-1.9.6L19 20l-.6-1.9-1.9-.6 1.9-.6z"/></symbol>
+<symbol id="icon-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/></symbol>
+<symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 7l9 6 9-6"/></symbol>
+<symbol id="icon-package" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><line x1="12" y1="11" x2="12" y2="21"/></symbol>
+<symbol id="icon-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.3.9-1.3 1.9"/><line x1="12" y1="17" x2="12" y2="17.1"/></symbol>
+<symbol id="icon-message-question" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.6.3-1 .6-1 1.3"/><line x1="11.6" y1="14.5" x2="11.6" y2="14.6"/></symbol>
+<symbol id="icon-send" viewBox="0 0 24 24"><path d="M4 11l16-7-6 16-3-6-7-3z"/></symbol>
+<symbol id="icon-tick" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></symbol>
+<symbol id="icon-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></symbol>
+<symbol id="icon-cancel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></symbol>
+<symbol id="icon-cloud-download" viewBox="0 0 24 24"><path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17.3 9.5 4 4 0 0 1 17 18H7z"/><path d="M12 10v7"/><path d="M9.5 14.5L12 17l2.5-2.5"/></symbol>
+<symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="21" y2="21"/></symbol>
+<symbol id="icon-quote" viewBox="0 0 24 24"><path d="M7 7a2.5 2.5 0 0 0-2.5 2.5V12A2.5 2.5 0 0 0 7 14.5"/><path d="M15 7a2.5 2.5 0 0 0-2.5 2.5V12a2.5 2.5 0 0 0 2.5 2.5"/></symbol>
+<symbol id="icon-attachment" viewBox="0 0 24 24"><path d="M7 13.5l7.5-7.5a3 3 0 1 1 4.2 4.2L10 19a5 5 0 1 1-7-7l8-8"/></symbol>
+<symbol id="icon-note" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></symbol>
+<symbol id="icon-file-search" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><circle cx="11" cy="14" r="2.5"/><line x1="13" y1="16" x2="15" y2="18"/></symbol>
+<symbol id="icon-tag" viewBox="0 0 24 24"><path d="M3 12.5V5a1 1 0 0 1 1-1h7.5L21 12.5 12.5 21 3 12.5z"/><circle cx="8" cy="8" r="1.3"/></symbol>
+<symbol id="icon-file" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9.5" y1="12" x2="14.5" y2="12"/><line x1="9.5" y1="15.5" x2="14.5" y2="15.5"/></symbol>
+<symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none"/></symbol>
+</defs>
+</svg>
+
+<div class="ambient" aria-hidden="true">
+  <div class="grid-decor"></div>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+</div>
 
 <div class="scene-track" id="track">
   <div class="scene" id="scene">
     <svg id="scene-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Aerial view of a container port that zooms into stacked containers as you scroll">
       <g id="world"></g>
     </svg>
+    <div class="scene-vignette" aria-hidden="true"></div>
 
     <div class="topbar">
-      <div class="brand">Customs Copilot</div>
-      <div class="pill" id="status" role="status">Checking service</div>
+      <div class="brand">
+        <span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-ship"/></svg></span>
+        <span><span class="brand-text-a">Customs</span><span class="brand-text-b">Copilot</span></span>
+      </div>
+      <div class="pill" id="status" role="status"><span class="ping" aria-hidden="true"></span>Checking service</div>
     </div>
 
     <div class="caption" aria-live="polite">
-      <div class="kicker" id="phase-kicker">Port overview</div>
+      <div class="kicker-row">
+        <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" style="color: var(--accent-ink); font-size: 13px;"><use href="#icon-location"/></svg>
+        <div class="kicker" id="phase-kicker">Port overview</div>
+      </div>
       <h1 id="phase-title">Container port from above</h1>
       <p id="phase-text">Scroll to move closer to the yard.</p>
     </div>
 
-    <a class="cue" href="#tools">Go to tools</a>
-    <div class="progress" id="progress"></div>
+    <a class="cue" href="#tools">Go to tools <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-arrow-right"/></svg></a>
+    <div class="progress-track"><div class="progress" id="progress"></div></div>
   </div>
 </div>
 
+<section class="highlights" aria-label="Why Customs Copilot">
+  <div class="chip crosshair">
+    <span class="chip-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-shield-check"/></svg></span>
+    <div>
+      <h3>Every sentence cited</h3>
+      <p>Drafts quote the exact shipment document line they rely on, or they're rejected before you see them.</p>
+    </div>
+  </div>
+  <div class="chip crosshair">
+    <span class="chip-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-invoice"/></svg></span>
+    <div>
+      <h3>Tariff-verified charges</h3>
+      <p>Port and CFS invoices are checked line-by-line against the published tariff card, with the disagreeing line shown.</p>
+    </div>
+  </div>
+  <div class="chip crosshair">
+    <span class="chip-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-user-check"/></svg></span>
+    <div>
+      <h3>You approve, you send</h3>
+      <p>Nothing leaves this screen automatically. A licensed professional reviews and approves every draft.</p>
+    </div>
+  </div>
+</section>
+
 <main class="tools" id="tools">
-  <div class="tabs" role="tablist" aria-label="Tools">
-    <button class="tab" role="tab" id="tab-query" aria-controls="panel-query" aria-selected="true">Query reply</button>
-    <button class="tab" role="tab" id="tab-charges" aria-controls="panel-charges" aria-selected="false" tabindex="-1">Charge check</button>
+  <div class="tools-head">
+    <span class="eyebrow"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-sparkles"/></svg> Clearance tools</span>
+    <h2 class="lead">Draft replies and check charges, with receipts</h2>
+    <p class="sub">Two focused tools on one stateless service. Synthetic data only — nothing here is a real shipment.</p>
   </div>
 
-  <section class="panel" id="panel-query" role="tabpanel" aria-labelledby="tab-query">
-    <h2>Draft a reply to a customs query</h2>
-    <p class="lede">Choose a shipment and a question. Every sentence in the draft is checked against that shipment's documents. Nothing is sent; you approve before copying.</p>
-
-    <div class="grid">
-      <div class="field">
-        <label for="shipment">Shipment</label>
-        <select id="shipment"></select>
-      </div>
-      <div class="field">
-        <label for="sample-q">Sample question</label>
-        <select id="sample-q"></select>
-      </div>
+  <div class="card crosshair">
+    <div class="tabs" role="tablist" aria-label="Tools">
+      <button class="tab" role="tab" id="tab-query" aria-controls="panel-query" aria-selected="true">
+        <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-chat"/></svg> Query reply
+      </button>
+      <button class="tab" role="tab" id="tab-charges" aria-controls="panel-charges" aria-selected="false" tabindex="-1">
+        <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-invoice"/></svg> Charge check
+      </button>
     </div>
 
-    <div class="field">
-      <label for="question">Officer question</label>
-      <textarea id="question" maxlength="2000" placeholder="Type the officer's question"></textarea>
-    </div>
+    <section class="panel" id="panel-query" role="tabpanel" aria-labelledby="tab-query">
+      <h2><span class="h2-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-mail"/></svg></span>Draft a reply to a customs query</h2>
+      <p class="lede">Choose a shipment and a question. Every sentence in the draft is checked against that shipment's documents. Nothing is sent; you approve before copying.</p>
 
-    <label class="check" id="llm-row" hidden>
-      <input type="checkbox" id="use-llm"> Use AI drafting (verified before it reaches you)
-    </label>
+      <div class="grid">
+        <div class="field">
+          <label for="shipment"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-package"/></svg>Shipment</label>
+          <select id="shipment"></select>
+        </div>
+        <div class="field">
+          <label for="sample-q"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-help-circle"/></svg>Sample question</label>
+          <select id="sample-q"></select>
+        </div>
+      </div>
 
-    <div class="row">
-      <button class="btn" id="draft-btn">Draft reply</button>
-    </div>
-    <div class="status" id="query-status" role="status"></div>
-
-    <div class="out" id="draft-out" hidden>
-      <div class="kicker" id="draft-meta"></div>
       <div class="field">
-        <label for="draft-text">Draft</label>
-        <textarea id="draft-text"></textarea>
+        <label for="question"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-message-question"/></svg>Officer question</label>
+        <textarea id="question" maxlength="2000" placeholder="Type the officer's question"></textarea>
       </div>
 
-      <div id="sentences-wrap" hidden>
-        <div class="kicker">Cited sentences</div>
-        <ol class="sentences" id="sentences"></ol>
+      <label class="check" id="llm-row" hidden>
+        <input type="checkbox" id="use-llm"> Use AI drafting (verified before it reaches you)
+      </label>
+
+      <div class="row">
+        <button class="btn" id="draft-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-send"/></svg>Draft reply</button>
+      </div>
+      <div class="status" id="query-status" role="status"></div>
+
+      <div class="out" id="draft-out" hidden>
+        <div class="kicker" id="draft-meta"></div>
+        <div class="field">
+          <label for="draft-text">Draft</label>
+          <textarea id="draft-text"></textarea>
+        </div>
+
+        <div id="sentences-wrap" hidden>
+          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-quote"/></svg>Cited sentences</div>
+          <ol class="sentences" id="sentences"></ol>
+        </div>
+
+        <div id="missing-wrap" hidden>
+          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-attachment"/></svg>Documents to attach</div>
+          <ul class="plain" id="missing"></ul>
+        </div>
+
+        <div id="notes-wrap" hidden>
+          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-note"/></svg>Notes</div>
+          <ul class="plain" id="notes"></ul>
+        </div>
+
+        <div id="rejected-wrap" hidden>
+          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-cancel"/></svg>Rejected by the verifier</div>
+          <ul class="plain" id="rejected"></ul>
+        </div>
+
+        <div id="evidence-wrap" hidden>
+          <div class="kicker"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-file-search"/></svg>Evidence lines</div>
+          <ul class="plain" id="evidence"></ul>
+        </div>
+
+        <div class="row">
+          <button class="btn" id="approve-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-tick"/></svg>Approve draft</button>
+          <button class="btn ghost" id="copy-btn" disabled><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-copy"/></svg>Copy</button>
+          <button class="btn ghost" id="reject-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-cancel"/></svg>Reject</button>
+        </div>
+        <div class="status" id="approve-status" role="status"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-charges" role="tabpanel" aria-labelledby="tab-charges" hidden>
+      <h2><span class="h2-icon"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-invoice"/></svg></span>Check a port or CFS invoice</h2>
+      <p class="lede">Paste the invoice text. Each charge is compared with the published tariff card, and every flag shows the tariff line it disagrees with.</p>
+
+      <div class="grid">
+        <div class="field">
+          <label for="tariff-id"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-tag"/></svg>Tariff card (optional)</label>
+          <input type="text" id="tariff-id" placeholder="Leave blank to choose by terminal">
+        </div>
+        <div class="field" style="align-self: end;">
+          <button class="btn ghost" id="load-sample-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-cloud-download"/></svg>Load sample invoice</button>
+        </div>
       </div>
 
-      <div id="missing-wrap" hidden>
-        <div class="kicker">Documents to attach</div>
-        <ul class="plain" id="missing"></ul>
-      </div>
-
-      <div id="notes-wrap" hidden>
-        <div class="kicker">Notes</div>
-        <ul class="plain" id="notes"></ul>
-      </div>
-
-      <div id="rejected-wrap" hidden>
-        <div class="kicker">Rejected by the verifier</div>
-        <ul class="plain" id="rejected"></ul>
-      </div>
-
-      <div id="evidence-wrap" hidden>
-        <div class="kicker">Evidence lines</div>
-        <ul class="plain" id="evidence"></ul>
+      <div class="field">
+        <label for="invoice-text"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-file"/></svg>Invoice text</label>
+        <textarea id="invoice-text" maxlength="20000" style="min-height: 180px;" placeholder="TERMINAL: ...&#10;INVOICE NO: ..."></textarea>
       </div>
 
       <div class="row">
-        <button class="btn" id="approve-btn">Approve draft</button>
-        <button class="btn ghost" id="copy-btn" disabled>Copy</button>
-        <button class="btn ghost" id="reject-btn">Reject</button>
+        <button class="btn" id="check-btn"><svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-search"/></svg>Check invoice</button>
       </div>
-      <div class="status" id="approve-status" role="status"></div>
-    </div>
-  </section>
+      <div class="status" id="charge-status" role="status"></div>
 
-  <section class="panel" id="panel-charges" role="tabpanel" aria-labelledby="tab-charges" hidden>
-    <h2>Check a port or CFS invoice</h2>
-    <p class="lede">Paste the invoice text. Each charge is compared with the published tariff card, and every flag shows the tariff line it disagrees with.</p>
-
-    <div class="grid">
-      <div class="field">
-        <label for="tariff-id">Tariff card (optional)</label>
-        <input type="text" id="tariff-id" placeholder="Leave blank to choose by terminal">
+      <div class="out" id="charge-out" hidden>
+        <div class="summary">
+          <div><span>Terminal</span><strong id="sum-terminal"></strong></div>
+          <div><span>Dwell days</span><strong id="sum-dwell"></strong></div>
+          <div><span>Read with</span><strong id="sum-read"></strong></div>
+          <div><span>Overcharge before GST</span><strong id="sum-over"></strong></div>
+        </div>
+        <p class="explain" id="charge-explain"></p>
+        <div class="table-wrap" id="flags-wrap">
+          <table>
+            <thead>
+              <tr><th>Check</th><th>Line</th><th>Issue</th><th>Tariff line</th><th>Billed</th><th>Expected</th><th>Over</th></tr>
+            </thead>
+            <tbody id="flags"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="field" style="align-self: end;">
-        <button class="btn ghost" id="load-sample-btn">Load sample invoice</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="invoice-text">Invoice text</label>
-      <textarea id="invoice-text" maxlength="20000" style="min-height: 180px;" placeholder="TERMINAL: ...&#10;INVOICE NO: ..."></textarea>
-    </div>
-
-    <div class="row">
-      <button class="btn" id="check-btn">Check invoice</button>
-    </div>
-    <div class="status" id="charge-status" role="status"></div>
-
-    <div class="out" id="charge-out" hidden>
-      <div class="summary">
-        <div><span>Terminal</span><strong id="sum-terminal"></strong></div>
-        <div><span>Dwell days</span><strong id="sum-dwell"></strong></div>
-        <div><span>Read with</span><strong id="sum-read"></strong></div>
-        <div><span>Overcharge before GST</span><strong id="sum-over"></strong></div>
-      </div>
-      <p class="explain" id="charge-explain"></p>
-      <div class="table-wrap" id="flags-wrap">
-        <table>
-          <thead>
-            <tr><th>Check</th><th>Line</th><th>Issue</th><th>Tariff line</th><th>Billed</th><th>Expected</th><th>Over</th></tr>
-          </thead>
-          <tbody id="flags"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </main>
 
 <footer class="foot">
+  <svg class="icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><use href="#icon-info"/></svg>
   Drafts and checks only. A licensed professional remains responsible for anything filed. Sample data is synthetic.
 </footer>
 
@@ -351,7 +649,7 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
   var NS = "http://www.w3.org/2000/svg";
   var VB_W = 1200, VB_H = 700;
   var CX = VB_W / 2, CY = VB_H / 2;
-  var COLORS = ["#0369A1", "#475569", "#94A3B8", "#1E3A5F", "#64748B"];
+  var COLORS = ["#10B981", "#06B6D4", "#34D399", "#1E293B", "#64748B"];
   var world = document.getElementById("world");
   var track = document.getElementById("track");
   var progress = document.getElementById("progress");
@@ -371,26 +669,26 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
   function easeInOut(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
 
   var gSea = make("g", {}, world);
-  make("rect", { x: 0, y: 0, width: VB_W, height: VB_H, fill: "#E6EEF5" }, gSea);
+  make("rect", { x: 0, y: 0, width: VB_W, height: VB_H, fill: "#0B1424" }, gSea);
   var waves = make("g", { class: "waves" }, gSea);
   for (var w = 0; w < 14; w++) {
     var wy = 30 + w * 48, d = "";
     for (var x = -80; x <= 340; x += 40) {
       d += (x === -80 ? "M" : "L") + x + " " + (wy + ((x / 40) % 2 ? 6 : 0)) + " ";
     }
-    make("path", { d: d, fill: "none", stroke: "#FFFFFF", "stroke-opacity": "0.7", "stroke-width": "2" }, waves);
+    make("path", { d: d, fill: "none", stroke: "#1B3A4A", "stroke-opacity": "0.9", "stroke-width": "2" }, waves);
   }
 
-  make("path", { d: "M40 470 L250 470 L226 512 L64 512 Z", fill: "#334155" }, world);
+  make("path", { d: "M40 470 L250 470 L226 512 L64 512 Z", fill: "#11182A" }, world);
   for (var s = 0; s < 6; s++) {
     make("rect", { x: 62 + s * 28, y: 448, width: 24, height: 20, rx: 1, fill: COLORS[s % COLORS.length] }, world);
   }
 
-  make("rect", { x: 300, y: 0, width: 28, height: VB_H, fill: "#CBD5E1" }, world);
-  make("rect", { x: 328, y: 0, width: VB_W - 328, height: VB_H, fill: "#EEF2F6" }, world);
+  make("rect", { x: 300, y: 0, width: 28, height: VB_H, fill: "#1A2338" }, world);
+  make("rect", { x: 328, y: 0, width: VB_W - 328, height: VB_H, fill: "#0D1526" }, world);
 
   for (var c = 0; c < 4; c++) {
-    make("rect", { x: 300, y: 110 + c * 140, width: 44, height: 22, rx: 2, fill: "#0F172A", "fill-opacity": "0.85" }, world);
+    make("rect", { x: 300, y: 110 + c * 140, width: 44, height: 22, rx: 2, fill: "#05070C", "fill-opacity": "0.9" }, world);
   }
 
   var BW = 84, BH = 72, GX = 18, GY = 16, COLS = 8, ROWS = 5;
@@ -406,7 +704,7 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
     for (var col = 0; col < COLS; col++) {
       var bx = X0 + (BW + GX) * col, by = Y0 + (BH + GY) * r;
       var g = make("g", {}, gYard);
-      var base = make("rect", { x: bx, y: by, width: BW, height: BH, rx: 2, fill: "#DCE3EC" }, g);
+      var base = make("rect", { x: bx, y: by, width: BW, height: BH, rx: 2, fill: "#1B2740" }, g);
       var cg = make("g", {}, g);
       var cons = [];
       for (var k = 0; k < 6; k++) {
@@ -475,6 +773,26 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     render(progressNow());
+  }
+
+  /* ---------- Scroll reveal for highlight chips and cards ---------- */
+
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    var revealEls = document.querySelectorAll(".chip, .card");
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(function (el, i) {
+      el.style.transitionDelay = (i % 4) * 0.08 + "s";
+      io.observe(el);
+    });
+  } else {
+    document.querySelectorAll(".chip, .card").forEach(function (el) { el.classList.add("in-view"); });
   }
 
   /* ---------- Tools ---------- */
@@ -568,10 +886,10 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
 
   api("/health").then(function (h) {
     llmAvailable = !!(h && h.llm_available);
-    $("status").textContent = llmAvailable ? "AI drafting on" : "Offline mode";
+    $("status").lastChild.textContent = llmAvailable ? " AI drafting on" : " Offline mode";
     toggle($("llm-row"), llmAvailable);
   }).catch(function () {
-    $("status").textContent = "Service unavailable";
+    $("status").lastChild.textContent = " Service unavailable";
   });
 
   /* Query reply */
