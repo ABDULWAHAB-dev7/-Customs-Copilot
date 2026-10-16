@@ -1,0 +1,14 @@
+{
+  "required_documents": [
+    "commercial_invoice",
+    "packing_list",
+    "bill_of_lading"
+  ],
+  "free_days": {
+    "port_storage": 5,
+    "cfs_storage": 7,
+    "container_detention": 5
+  },
+  "gst_rate": 18,
+  "currency": "INR"
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "doc_001",
+    "title": "Port Charge Guidelines",
+    "content": "Port handling charges are assessed based on container size and weight. Standard 20ft containers: Rs. 1000. Standard 40ft containers: Rs. 1500. Consolidated cargo: Rs. 500 per shipment."
+  },
+  {
+    "id": "doc_002",
+    "title": "GST Tariff Information",
+    "content": "GST on customs clearance services is 18%. All charges subject to GST unless specifically exempt. GST calculation: (Base Amount × 18) / 100."
+  },
+  {
+    "id": "doc_003",
+    "title": "Free Days Policy",
+    "content": "Free storage days: 5 days for port, 7 days for CFS. Extended free days available for exports. Charges apply from day 6 onwards at Rs. 200 per day."
+  },
+  {
+    "id": "doc_004",
+    "title": "Document Requirements",
+    "content": "Required documents for import clearance: Commercial Invoice, Packing List, Bill of Lading/AWB, Import License (if applicable), Certificate of Origin."
+  }
+]
