@@ -10,6 +10,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!frontend-next/lib/
 lib64/
 parts/
 sdist/

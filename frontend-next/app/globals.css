@@ -19,9 +19,9 @@ body {
   overflow-x: hidden;
 }
 
-.story-track { position: relative; height: 500vh; }
+.seq-track { position: relative; height: calc(100vh + var(--pin, 400) * 1vh); }
 
-.story-stage {
+.seq-stage {
   position: relative;
   height: 100vh;
   height: 100svh;
@@ -29,11 +29,11 @@ body {
   background: var(--dark);
 }
 
-.story-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.seq-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-.story-veil { position: absolute; inset: 0; background: rgba(18, 17, 15, 0.42); }
+.seq-veil { position: absolute; inset: 0; background: rgba(18, 17, 15, 0.42); }
 
-.story-caption {
+.seq-caption {
   position: absolute;
   left: var(--gutter);
   bottom: clamp(48px, 10vh, 104px);
@@ -43,7 +43,7 @@ body {
   z-index: 2;
 }
 
-.story-kicker {
+.seq-kicker {
   font-family: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   font-size: 12px;
   letter-spacing: 0.06em;
@@ -51,7 +51,7 @@ body {
   margin-bottom: 16px;
 }
 
-.story-caption h2 {
+.seq-caption h2 {
   font-size: clamp(32px, 4.4vw, 60px);
   line-height: 1.04;
   letter-spacing: -0.02em;
@@ -61,13 +61,13 @@ body {
   margin-bottom: 16px;
 }
 
-.story-body { font-size: 19px; line-height: 1.5; max-width: 44ch; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+.seq-body { font-size: 19px; line-height: 1.5; max-width: 44ch; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
 
-.is-static .story-track { height: auto; }
-.is-static .story-stage { height: auto; overflow: visible; }
-.is-static .story-canvas { position: relative; height: 60vh; }
-.is-static .story-veil { display: none; }
-.is-static .story-caption {
+.is-static .seq-track { height: auto; }
+.is-static .seq-stage { height: auto; overflow: visible; }
+.is-static .seq-canvas { position: relative; height: 60vh; }
+.is-static .seq-veil { display: none; }
+.is-static .seq-caption {
   position: relative;
   left: auto;
   bottom: auto;
@@ -78,7 +78,20 @@ body {
 }
 
 @media (max-width: 520px) {
-  .story-caption { left: 20px; right: 20px; bottom: 36px; }
-  .story-caption h2 { font-size: 30px; }
-  .story-body { font-size: 16px; }
+  .seq-caption { left: 20px; right: 20px; bottom: 36px; }
+  .seq-caption h2 { font-size: 30px; }
+  .seq-body { font-size: 16px; }
 }
+
+.seq-loader {
+  position: absolute;
+  top: 24px;
+  right: var(--gutter);
+  z-index: 3;
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--dark-ink);
+  transition: opacity 0.6s var(--ease);
+}
+.seq-loader[data-done="true"] { opacity: 0; }
