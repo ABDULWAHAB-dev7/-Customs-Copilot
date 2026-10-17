@@ -10,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export type SequenceCaption = {
   kicker: string;
-  title: string;
+  titleLines: readonly string[];
   body: string;
 };
 
@@ -24,8 +24,6 @@ type FrameSequenceProps = {
   focalX?: number;
   focalY?: number;
 };
-
-const FADE_MAX = 0.06;
 
 function fillPattern(pattern: string, index: number) {
   return pattern.replace(/\{n(\d*)\}/, (_, width: string) =>
@@ -154,42 +152,51 @@ export default function FrameSequence({
 
     const ctx = gsap.context(() => {
       const windowSize = 1 / captionEls.length;
-      const fade = Math.min(FADE_MAX, windowSize * 0.25);
+      const trackSpan = () => track.offsetHeight - window.innerHeight;
 
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: track,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: true,
-          onUpdate: (self) => {
-            const index = Math.min(count - 1, Math.round(self.progress * (count - 1)));
-            if (index !== requested) {
-              requested = index;
-              paint();
-            }
-          },
+      ScrollTrigger.create({
+        trigger: track,
+        start: "top top",
+        end: "bottom bottom",
+        onUpdate: (self) => {
+          const index = Math.min(count - 1, Math.round(self.progress * (count - 1)));
+          if (index !== requested) {
+            requested = index;
+            paint();
+          }
         },
       });
 
       captionEls.forEach((el, k) => {
-        const start = k * windowSize;
-        const end = start + windowSize;
-        if (k === 0) {
-          gsap.set(el, { autoAlpha: 1, y: 0 });
-        } else {
-          timeline.fromTo(
-            el,
-            { autoAlpha: 0, y: 28 },
-            { autoAlpha: 1, y: 0, duration: fade, ease: "power2.out" },
-            start,
-          );
-        }
-        if (k < captionEls.length - 1) {
-          timeline.to(el, { autoAlpha: 0, y: -18, duration: fade, ease: "power2.in" }, end - fade);
+        const lines = el.querySelectorAll(".seq-line");
+        const body = el.querySelector(".seq-body");
+        const last = k === captionEls.length - 1;
+
+        const inTl = gsap.timeline({ paused: true })
+          .set(el, { autoAlpha: 1 }, 0)
+          .fromTo(lines, { yPercent: 110 }, { yPercent: 0, duration: 1.1, ease: "expo.out", stagger: 0.12 })
+          .fromTo(body, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.75");
+
+        const outTl = gsap.timeline({ paused: true })
+          .to(lines, { yPercent: -110, duration: 0.6, ease: "power2.in", stagger: 0.05 })
+          .to(body, { autoAlpha: 0, y: -16, duration: 0.4, ease: "power2.in" }, 0)
+          .set(el, { autoAlpha: 0 }, 0.75);
+
+        const trigger = ScrollTrigger.create({
+          trigger: track,
+          start: () => `top+=${k * windowSize * trackSpan()}px top`,
+          end: () => `top+=${(k + 1) * windowSize * trackSpan()}px top`,
+          onEnter: () => inTl.play(),
+          onLeaveBack: () => inTl.reverse(),
+          onLeave: () => { if (!last) outTl.play(); },
+          onEnterBack: () => { if (!last) outTl.reverse(); },
+        });
+        const trackTop = track.getBoundingClientRect().top + window.scrollY;
+        const scrollNow = window.scrollY - trackTop;
+        if (trigger.isActive || (scrollNow >= k * windowSize * trackSpan() && scrollNow < (k + 1) * windowSize * trackSpan())) {
+          inTl.progress(1);
         }
       });
-      timeline.set({}, {}, 1);
 
       ScrollTrigger.create({
         trigger: track,
@@ -229,7 +236,13 @@ export default function FrameSequence({
             className="seq-caption"
           >
             <p className="seq-kicker">{caption.kicker}</p>
-            <h2>{caption.title}</h2>
+            <h2 className="seq-title">
+              {caption.titleLines.map((line) => (
+                <span key={line} className="seq-mask">
+                  <span className="seq-line">{line}</span>
+                </span>
+              ))}
+            </h2>
             <p className="seq-body">{caption.body}</p>
           </div>
         ))}

@@ -3,7 +3,7 @@ import FrameSequence from "@/components/FrameSequence";
 const SEQUENCE_CAPTIONS = [
   {
     kicker: "Sequence",
-    title: "Cargo moves along the route.",
+    titleLines: ["Cargo moves", "along the route."],
     body: "Scroll to play the sequence forward, and scroll back to run it in reverse.",
   },
 ];

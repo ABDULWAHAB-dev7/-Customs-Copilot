@@ -26,42 +26,56 @@ body {
   height: 100vh;
   height: 100svh;
   overflow: hidden;
-  background: var(--dark);
+  background: #050814;
 }
 
 .seq-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-.seq-veil { position: absolute; inset: 0; background: rgba(18, 17, 15, 0.42); }
+.seq-veil { position: absolute; inset: 0; background: rgba(5, 8, 20, 0.52); }
 
 .seq-caption {
   position: absolute;
   left: var(--gutter);
   bottom: clamp(48px, 10vh, 104px);
-  max-width: 620px;
+  max-width: min(88vw, 1100px);
+  z-index: 2;
   opacity: 0;
   visibility: hidden;
-  z-index: 2;
 }
 
 .seq-kicker {
   font-family: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   font-size: 12px;
-  letter-spacing: 0.06em;
-  color: var(--dark-ink);
-  margin-bottom: 16px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #aab4ff;
+  margin-bottom: 18px;
 }
 
-.seq-caption h2 {
-  font-size: clamp(32px, 4.4vw, 60px);
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-  font-weight: 700;
-  font-stretch: 90%;
-  max-width: 18ch;
-  margin-bottom: 16px;
+.seq-title {
+  font-family: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  font-stretch: 75%;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(40px, 6.2vw, 110px);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  color: #f4f6ff;
+  text-shadow: 0 0 42px rgba(0, 22, 203, 0.55);
 }
 
-.seq-body { font-size: 19px; line-height: 1.5; max-width: 44ch; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+.seq-mask { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+.seq-line { display: block; white-space: nowrap; will-change: transform; }
+
+.seq-body {
+  margin-top: 22px;
+  font-size: 19px;
+  line-height: 1.5;
+  max-width: 44ch;
+  color: rgba(244, 246, 255, 0.86);
+  text-shadow: 0 0 24px rgba(0, 22, 203, 0.35);
+  opacity: 0;
+}
 
 .is-static .seq-track { height: auto; }
 .is-static .seq-stage { height: auto; overflow: visible; }
@@ -71,15 +85,16 @@ body {
   position: relative;
   left: auto;
   bottom: auto;
-  opacity: 1;
-  visibility: visible;
   padding: 48px var(--gutter) 0;
   max-width: none;
 }
+.is-static .seq-caption { opacity: 1; visibility: visible; }
+.is-static .seq-line { transform: none; }
+.is-static .seq-body { opacity: 1; }
 
 @media (max-width: 520px) {
   .seq-caption { left: 20px; right: 20px; bottom: 36px; }
-  .seq-caption h2 { font-size: 30px; }
+  .seq-title { font-size: 11.5vw; }
   .seq-body { font-size: 16px; }
 }
 

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canvas scrub: minimal example</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.css">
+<style>
+  :root { --bg: #050814; --ink: #f4f6ff; --glow: rgba(0, 22, 203, 0.55); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: Archivo, "Arial Narrow", system-ui, sans-serif; }
+  .track { position: relative; height: 500vh; }
+  .stage { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .veil { position: absolute; inset: 0; background: rgba(5, 8, 20, 0.5); }
+  .caption { position: absolute; left: 5vw; bottom: 12vh; max-width: 88vw; opacity: 0; visibility: hidden; }
+  .mask { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+  .line { display: block; white-space: nowrap; will-change: transform; }
+  h2 { font-stretch: 75%; font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 6.2vw, 110px); line-height: 0.92; text-shadow: 0 0 42px var(--glow); }
+  p { margin-top: 20px; max-width: 44ch; font-size: 19px; opacity: 0; }
+</style>
+</head>
+<body>
+<div class="track" id="track">
+  <div class="stage">
+    <canvas id="c"></canvas>
+    <div class="veil"></div>
+    <div class="caption" id="cap">
+      <h2><span class="mask"><span class="line">Cargo moves</span></span><span class="mask"><span class="line">along the route.</span></span></h2>
+      <p>Scroll forward to play the sequence, and back to reverse it.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
+<script>
+  const COUNT = 120;
+  const frameUrl = (i) => `/sequence/frame_${String(i + 1).padStart(3, "0")}.webp`;
+  const track = document.getElementById("track");
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const frames = new Array(COUNT);
+  let shown = -1;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // 1. Smooth scroll: Lenis drives the scroll position, GSAP's ticker drives Lenis.
+  const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add((t) => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+
+  // 2. Preload: decode each frame before it is drawn, so scrubbing never waits on a decode.
+  for (let i = 0; i < COUNT; i++) {
+    const img = new Image();
+    img.src = frameUrl(i);
+    img.decode().then(() => { frames[i] = img; if (i === shown || shown === -1) draw(i); }).catch(() => {});
+  }
+
+  // 3. Draw: cover-fit the frame to the canvas; keep the last frame until the next one is ready.
+  function fit() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(innerWidth * dpr);
+    canvas.height = Math.round(innerHeight * dpr);
+    draw(Math.max(shown, 0));
+  }
+  function draw(index) {
+    let i = index;
+    while (i >= 0 && !frames[i]) i--;
+    if (i < 0) return;
+    const img = frames[i];
+    const s = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+    shown = index;
+  }
+  addEventListener("resize", fit);
+  fit();
+
+  // 4. Scrub: the frame index is the scroll progress, so reversing the scroll reverses the frames.
+  ScrollTrigger.create({
+    trigger: track,
+    start: "top top",
+    end: "bottom bottom",
+    pin: ".stage",
+    pinSpacing: false,
+    onUpdate: (self) => {
+      const index = Math.round(self.progress * (COUNT - 1));
+      if (index !== shown) draw(index);
+    },
+  });
+
+  // 5. Reveal: the title lines slide up from behind their masks when the caption enters its zone.
+  const cap = document.getElementById("cap");
+  const lines = cap.querySelectorAll(".line");
+  const body = cap.querySelector("p");
+  const inTl = gsap.timeline({ paused: true })
+    .set(cap, { autoAlpha: 1 })
+    .fromTo(lines, { yPercent: 110 }, { yPercent: 0, duration: 1.1, ease: "expo.out", stagger: 0.12 })
+    .to(body, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.75");
+  const outTl = gsap.timeline({ paused: true })
+    .to(lines, { yPercent: -110, duration: 0.6, ease: "power2.in", stagger: 0.05 })
+    .to(body, { opacity: 0, duration: 0.4 }, 0)
+    .set(cap, { autoAlpha: 0 }, 0.75);
+
+  ScrollTrigger.create({
+    trigger: track,
+    start: "top top",
+    end: "70% top",
+    onEnter: () => inTl.play(),
+    onLeaveBack: () => inTl.reverse(),
+    onLeave: () => outTl.play(),
+    onEnterBack: () => outTl.reverse(),
+  });
+</script>
+</body>
+</html>
