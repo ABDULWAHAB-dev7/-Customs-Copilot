@@ -13,7 +13,11 @@ core/charges.py     invoice reader, tariff selection, Decimal checks, explanatio
 core/retrieval.py   dependency-free BM25
 core/llm.py         optional Gemini client (urllib, 8 s timeout, never raises)
 data/*.json         read-only bundle: shipments, questions, tariffs, cfs_invoices
-public/index.html   static page (served by Vercel's CDN; by dev.py locally)
+public/index.html   landing page and both tools (served by Vercel's CDN; by dev.py locally)
+public/terms.html, public/privacy.html   legal pages on the shared header and footer
+public/assets/      site.css (clay design, header, footer), site.js (menu, scroll motion, status),
+                    icons.svg (Hugeicons free set, MIT), skyline.svg (animated footer scene)
+public/scroll/      sample footage frames (four stills are used on the page)
 scripts/generate_data.py   regenerates data/*.json deterministically
 tests/              run_checks.py, test_llm_guard.py
 dev.py              local server: API and page on port 8000
