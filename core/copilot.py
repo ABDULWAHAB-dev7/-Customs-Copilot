@@ -67,7 +67,7 @@ def verify(proposals, by_id):
         text = str(s.get("text", "")).strip()
         cite = s.get("cite")
         quote = str(s.get("quote", ""))
-        chunk = by_id.get(cite)
+        chunk = by_id.get(cite) if isinstance(cite, str) else None
         if not text:
             reason = "empty sentence"
         elif chunk is None:

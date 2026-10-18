@@ -88,10 +88,35 @@ def check_api():
     expect(string_flag["mode"] == "offline", "use_llm must be a real boolean")
 
 
+def check_regressions():
+    from core.charges import ReadError
+    from core.copilot import draft
+    tariffs = load("tariffs.json")
+    shipments = {s["id"]: s for s in load("shipments.json")}
+    base = load("cfs_invoices.json")[0]["text"]
+
+    for label, text in [
+        ("negative amount", base.replace("LINE 2 | DOC | Documentation | 1 | 300.00 | 300.00", "LINE 2 | DOC | Documentation | 1 | -300.00 | -300.00")),
+        ("thousands separator", base.replace("1500.00 | 1500.00", "1,500.00 | 1,500.00")),
+        ("fractional storage days", base.replace("| 2 | 300.00 | 600.00", "| 2.5 | 300.00 | 600.00")),
+        ("duplicate footer", base.replace("GST: 432.00", "GST: 432.00\nGST: 999.00")),
+    ]:
+        try:
+            check_invoice(text, tariffs, "SAMPLE_A")
+            expect(False, f"{label} must be rejected, not silently accepted")
+        except ReadError:
+            pass
+
+    proposal = [{"text": "a", "cite": ["invoice:1"], "quote": "x"}, {"text": "b", "cite": {"id": 1}, "quote": "x"}]
+    result = draft(shipments["SHP-1001"], "CTH?", use_llm=True, llm_call=lambda prompt: proposal)
+    expect(result["mode"] == "offline" and len(result["rejected"]) == 2, "unhashable LLM citations must be rejected, not crash")
+
+
 if __name__ == "__main__":
     check_charges()
     check_drafts()
     check_api()
+    check_regressions()
     if failures:
         print("FAILED")
         for f in failures:
